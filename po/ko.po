@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: phpMyAdmin 4.1.13-dev\n"
 "Report-Msgid-Bugs-To: phpmyadmin-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2014-03-27 13:53+0100\n"
-"PO-Revision-Date: 2014-04-10 16:07+0200\n"
-"Last-Translator: Michal Čihař <michal@cihar.com>\n"
+"PO-Revision-Date: 2014-04-19 15:04+0200\n"
+"Last-Translator: Yungu Kim <crimsonpi@gmail.com>\n"
 "Language-Team: Korean <https://l10n.cihar.com/projects/phpmyadmin/4-1/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -4300,15 +4300,15 @@ msgstr "사인온 인증 방식의 세션 이름이 비어있습니다."
 
 #: libraries/config/Validator.class.php:310
 msgid "Empty signon URL while using signon authentication method"
-msgstr ""
+msgstr "signon 인증 방식을 사용한다면 signon URL을 비워 두세요"
 
 #: libraries/config/Validator.class.php:358
 msgid "Empty phpMyAdmin control user while using pmadb"
-msgstr ""
+msgstr "pmadb를 사용한다면 phpMyAdmin 컨트롤 유저를 비우세요"
 
 #: libraries/config/Validator.class.php:363
 msgid "Empty phpMyAdmin control user password while using pmadb"
-msgstr ""
+msgstr "pmadb를 사용한다면 phpMyAdmin 컨트롤 유저의 비밀번호를 비우세요"
 
 #: libraries/config/Validator.class.php:447
 msgid "Incorrect value:"
@@ -5177,13 +5177,10 @@ msgid "Replace table data with file"
 msgstr "파일 내용으로 테이블 데이터 대체하기"
 
 #: libraries/config/messages.inc.php:254
-#, fuzzy
 msgid ""
 "Default format; be aware that this list depends on location (database, "
 "table) and only SQL is always available"
-msgstr ""
-"기본 형식; 이 목록은 위치(데이터베이스, 테이블)에 의존하며, SQL만 이용할 수 "
-"있음을 유의하십시오."
+msgstr "기본 형식; 이 목록은 위치(데이터베이스, 테이블)에 기반하며, SQL만이 사용 가능함을 유의하십시오"
 
 #: libraries/config/messages.inc.php:255
 msgid "Format of imported file"
@@ -5263,7 +5260,7 @@ msgstr "로그아웃시 모든 쿠키 삭제"
 msgid ""
 "Define whether the previous login should be recalled or not in cookie "
 "authentication mode"
-msgstr ""
+msgstr "쿠키 인증 모드에서 기존 로그인 정보를 다시 불러올 지 여부를 정의하세요"
 
 #: libraries/config/messages.inc.php:280
 msgid "Recall user name"
@@ -5328,7 +5325,7 @@ msgstr "탐색 트리에서 페이지 당 보여질 아이템 수"
 
 #: libraries/config/messages.inc.php:293
 msgid "Maximum items in branch"
-msgstr ""
+msgstr "브렌치 당 최대 아이템 갯수"
 
 #: libraries/config/messages.inc.php:294
 msgid ""
@@ -5555,7 +5552,7 @@ msgstr "서버/라이브러리 차이점 경고"
 msgid ""
 "Disable the default warning that is displayed on the Structure page if "
 "column names in a table are reserved MySQL words"
-msgstr ""
+msgstr "열 이름이 MySQL 예약어일 경우에도 구조 페이지에 경고를 표시하지 않습니다"
 
 #: libraries/config/messages.inc.php:343
 msgid "MySQL reserved word warning"
@@ -5567,7 +5564,7 @@ msgstr "메뉴탭 보여주기 방식"
 
 #: libraries/config/messages.inc.php:347
 msgid "How to display various action links"
-msgstr ""
+msgstr "여러 기능 링크를 표시하는 방법"
 
 #: libraries/config/messages.inc.php:348
 msgid "Disallow BLOB and BINARY columns from editing"
@@ -5583,10 +5580,12 @@ msgid ""
 "storage). If disabled, this utilizes JS-routines to display query history "
 "(lost by window close)."
 msgstr ""
+"DB-기반 쿼리 기록이 필요한 경우 활성화하세요 (phpMyAdmin 설정 공간이 필요합니다). 비활성화 할 경우, 쿼리 기록으로 JS-"
+"routines가 사용됩니다 (창을 닫을 경우 소멸됩니다)."
 
 #: libraries/config/messages.inc.php:351
 msgid "Permanent query history"
-msgstr ""
+msgstr "영구적 쿼리 기록"
 
 #: libraries/config/messages.inc.php:353
 msgid "How many queries are kept in history"
@@ -5598,7 +5597,7 @@ msgstr "쿼리 기록 길이"
 
 #: libraries/config/messages.inc.php:355
 msgid "Tab displayed when opening a new query window"
-msgstr ""
+msgstr "새 쿼리 창을 열 때 탭이 보입니다"
 
 #: libraries/config/messages.inc.php:356
 msgid "Default query window tab"
@@ -5647,11 +5646,11 @@ msgstr "반복 헤더"
 
 #: libraries/config/messages.inc.php:368
 msgid "Grid editing: trigger action"
-msgstr ""
+msgstr "격자판 수정: 트리거 동작"
 
 #: libraries/config/messages.inc.php:369
 msgid "Grid editing: save all edited cells at once"
-msgstr ""
+msgstr "격자판 수정: 수정된 칸들이 한 번에 저장됨"
 
 #: libraries/config/messages.inc.php:370
 msgid "Directory where exports can be saved on server"
@@ -5699,6 +5698,8 @@ msgid ""
 "authentication[/a] (not located in your document root; suggested: /etc/"
 "swekey.conf)"
 msgstr ""
+"[a@http://swekey.com]SweKey hardware authentication[/a]에 관한 설정 파일의 경로 (문서 "
+"최상단에 위치해 있지 않음; 추천 경로: /etc/swekey.conf)"
 
 #: libraries/config/messages.inc.php:381
 msgid "SweKey config file"
@@ -5717,6 +5718,8 @@ msgid ""
 "Leave blank for no [a@http://wiki.phpmyadmin.net/pma/bookmark]bookmark[/a] "
 "support, suggested: [kbd]pma__bookmark[/kbd]"
 msgstr ""
+"[a@http://wiki.phpmyadmin.net/pma/bookmark]북마크[/a] 지원이 필요 없는 경우 비워두세요, 추천: "
+"[kbd]pma__bookmark[/kbd]"
 
 #: libraries/config/messages.inc.php:385
 msgid "Bookmark table"
@@ -8305,32 +8308,33 @@ msgstr ""
 #: libraries/plugins/export/ExportSql.class.php:100
 msgid "Additional custom header comment (\\n splits lines):"
 msgstr ""
+"추가적인 커스텀 헤더 코멘트(\\n"
+"으로 줄바꿈):"
 
 #: libraries/plugins/export/ExportSql.class.php:107
 msgid ""
 "Include a timestamp of when databases were created, last updated, and last "
 "checked"
-msgstr ""
+msgstr "데이터베이스의 생성일, 마지막 업데이트, 마지막 체크에 대한 타임스탬프 포함"
 
 #: libraries/plugins/export/ExportSql.class.php:170
 msgid ""
 "Database system or older MySQL server to maximize output compatibility with:"
-msgstr ""
+msgstr "호환성을 최대화 할 수 있는 데이터베이스 시스템 또는 예전 버전의 MySQL 서버:"
 
 #: libraries/plugins/export/ExportSql.class.php:191
 #: libraries/plugins/export/ExportSql.class.php:234
 #: libraries/plugins/export/ExportSql.class.php:257
 #: libraries/plugins/export/ExportSql.class.php:265
-#, fuzzy, php-format
+#, php-format
 #| msgid "Statements"
 msgid "Add %s statement"
-msgstr "명세"
+msgstr "%s 구문 추가"
 
 #: libraries/plugins/export/ExportSql.class.php:227
-#, fuzzy
 #| msgid "Statements"
 msgid "Add statements:"
-msgstr "명세"
+msgstr "구문 추가:"
 
 #: libraries/plugins/export/ExportSql.class.php:295
 msgid ""
@@ -8376,6 +8380,8 @@ msgid ""
 "&nbsp; &nbsp; Example: <code>INSERT INTO tbl_name (col_A,col_B,col_C) VALUES "
 "(1,2,3)</code>"
 msgstr ""
+"모든 <code>INSERT</code> 구문에 컬럼 이름을 포함<br />&nbsp; &nbsp; &nbsp;예: <code>"
+"INSERT INTO tbl_name (col_A,col_B,col_C) VALUES (1,2,3)</code>"
 
 #: libraries/plugins/export/ExportSql.class.php:377
 msgid ""
@@ -8383,18 +8389,24 @@ msgid ""
 "&nbsp; &nbsp; Example: <code>INSERT INTO tbl_name VALUES (1,2,3), (4,5,6), "
 "(7,8,9)</code>"
 msgstr ""
+"모든 <code>INSERT</code> 구문에 여러개의 행을 삽입<br />&nbsp; &nbsp; &nbsp; 예:<code>"
+"INSERT INTO tbl_name VALUES (1,2,3), (4,5,6), (7,8,9)</code>"
 
 #: libraries/plugins/export/ExportSql.class.php:382
 msgid ""
 "both of the above<br /> &nbsp; &nbsp; &nbsp; Example: <code>INSERT INTO "
 "tbl_name (col_A,col_B) VALUES (1,2,3), (4,5,6), (7,8,9)</code>"
 msgstr ""
+"위의 것 둘 다<br /> &nbsp; &nbsp; &nbsp; 예: <code>INSERT INTO tbl_name "
+"(col_A,col_B) VALUES (1,2,3), (4,5,6), (7,8,9)</code>"
 
 #: libraries/plugins/export/ExportSql.class.php:387
 msgid ""
 "neither of the above<br /> &nbsp; &nbsp; &nbsp; Example: <code>INSERT INTO "
 "tbl_name VALUES (1,2,3)</code>"
 msgstr ""
+"위의 것 둘 다 안 함<br /> &nbsp; &nbsp; &nbsp; 예: <code>INSERT INTO tbl_name VALUES "
+"(1,2,3)</code>"
 
 #: libraries/plugins/export/ExportSql.class.php:406
 msgid ""
@@ -11101,21 +11113,21 @@ msgstr ""
 
 #: libraries/server_status_variables.lib.php:675
 msgid "The total number of blocks in the query cache."
-msgstr ""
+msgstr "쿼리 캐시의 총 블럭 수."
 
 #: libraries/server_status_variables.lib.php:678
 msgid "The status of failsafe replication (not yet implemented)."
-msgstr ""
+msgstr "Failsafe 리플리케이션 상태 (아직 구현 안 됨)."
 
 #: libraries/server_status_variables.lib.php:681
 msgid ""
 "The number of joins that do not use indexes. If this value is not 0, you "
 "should carefully check the indexes of your tables."
-msgstr ""
+msgstr "인덱스를 사용하지 않은 조인의 수. 이 값이 0이 아니라면 테이블의 인덱스들을 주의 깊게 체크하세요."
 
 #: libraries/server_status_variables.lib.php:685
 msgid "The number of joins that used a range search on a reference table."
-msgstr ""
+msgstr "레퍼런스 테이블의 레인지 검색에 사용된 조인의 수."
 
 #: libraries/server_status_variables.lib.php:688
 msgid ""
@@ -12689,6 +12701,9 @@ msgid ""
 "proxies list%s. However, IP-based protection may not be reliable if your IP "
 "belongs to an ISP where thousands of users, including you, are connected to."
 msgstr ""
+"이 %soption%s은 무차별 대입 공격으로 MySQL 서버에 로그인 할 수 있는 취약점이 있으므로 비활성화 되어야 합니다. 만약 이 "
+"기능이 필요하다면, %strusted proxies list%s 옵션을 사용하세요. 하지만 IP 기반의 방어는 당신의 IP 주소가 "
+"수천명이 함께쓰는 ISP 대역에 있을 경우 안전하지 않습니다."
 
 #: setup/lib/index.lib.php:225
 msgid ""
@@ -12703,12 +12718,14 @@ msgid ""
 "%sBzip2 compression and decompression%s requires functions (%s) which are "
 "unavailable on this system."
 msgstr ""
+"%sBzip2 compression and decompression%s는 (%s) 기능이 필요한데, 이 기능은 이 시스템이서는 사용할 수 "
+"없습니다."
 
 #: setup/lib/index.lib.php:232
 msgid ""
 "This value should be double checked to ensure that this directory is neither "
 "world accessible nor readable or writable by other users on your server."
-msgstr ""
+msgstr "이 값은, 이 디렉토리가 외부에서 접속할 수 없도록, 이 서버의 다른 사용자가 읽거나 쓸 수 없도록 이중으로 체크되어야 합니다."
 
 #: setup/lib/index.lib.php:233
 #, php-format
@@ -12721,6 +12738,8 @@ msgid ""
 "%sGZip compression and decompression%s requires functions (%s) which are "
 "unavailable on this system."
 msgstr ""
+"%sGZip compression and decompression%s은 (%s) 기능이 필요한데, 이 기능은 이 시스템이서는 사용할 수 "
+"없습니다."
 
 #: setup/lib/index.lib.php:246
 #, php-format
@@ -12728,6 +12747,8 @@ msgid ""
 "%sLogin cookie validity%s greater than %ssession.gc_maxlifetime%s may cause "
 "random session invalidation (currently session.gc_maxlifetime is %d)."
 msgstr ""
+"%ssession.gc_maxlifetime%s보다 큰 %sLogin cookie validity%s은 불규칙적으로 세션 파기를 유발할 "
+"수 있습니다(현재 session.gc_maxlifetime은 %d)."
 
 #: setup/lib/index.lib.php:257
 #, php-format
@@ -12735,6 +12756,8 @@ msgid ""
 "%sLogin cookie validity%s should be set to 1800 seconds (30 minutes) at "
 "most. Values larger than 1800 may pose a security risk such as impersonation."
 msgstr ""
+"%sLogin cookie validity%s은 1800초(30분) 이하로 설정되어야 합니다.. 1800 초과시 인증 속이기 등의 보안 "
+"위험에 노출될 수 있습니다."
 
 #: setup/lib/index.lib.php:263
 #, php-format
@@ -12751,6 +12774,9 @@ msgid ""
 "protection may not be reliable if your IP belongs to an ISP where thousands "
 "of users, including you, are connected to."
 msgstr ""
+"만약 이것이 필요하다고 느낀다면, 추가적인 보안 설정을 하세요 - %shost authentication%s 설정과 %strusted "
+"proxies list%s. 하지만 IP 기반 보안은, 당신이 수천명의 사용자와 함께 쓰는 IP 대역을 사용할경우 그다지 안전하지 "
+"않습니다."
 
 #: setup/lib/index.lib.php:278
 #, php-format
@@ -12761,6 +12787,9 @@ msgid ""
 "phpMyAdmin panel. Set %sauthentication type%s to [kbd]cookie[/kbd] or "
 "[kbd]http[/kbd]."
 msgstr ""
+"[kbd]config[/kbd] 권한 타입 설정에 자동 로그인을 위해 사용자명과 암호를 포함했습니다. 이 설정은 실서비스용으로는 권장하지 "
+"않습니다. 누군가가 phpMyAdmin이 설치된 주소를 추측하고 접속하여 phpMyAdmin 패널을 건드릴 수 있습니다. %"
+"sauthentication type%s을 [kbd]cookie[/kbd]나 [kbd]http[/kbd]로 설정하세요."
 
 #: setup/lib/index.lib.php:284
 #, php-format
@@ -12774,7 +12803,7 @@ msgstr "%sZip 압축%s을 하기 위한 함수 %s가 현재 시스템에서 사�
 msgid ""
 "%sZip decompression%s requires functions (%s) which are unavailable on this "
 "system."
-msgstr ""
+msgstr "%sZip decompression%s 기능은 (%s) 기능이 필요한데, 현재 시스템에서 사용할수 없습니다."
 
 #: setup/lib/index.lib.php:324
 msgid "You should use SSL connections if your database server supports it."
@@ -14029,6 +14058,12 @@ msgid ""
 "\"http://www.mysqlperformanceblog.com/2007/11/03/choosing-"
 "innodb_buffer_pool_size/\">this article</a>"
 msgstr ""
+"InnoDB 버퍼 풀은 InnoDB 테이블의 성능에 심각한 영향을 줍니다. 남은 메모리 전체를 이 버퍼에 할당하십시오. 이 서버에 "
+"InnoDB를 스토리지 엔진으로만 사용하고, 다른 서비스(예: 웹 서버)가 없다면, 이 값을 사용가능한 메모리의 80%% 정도로 높게 "
+"설정하는 것도 괜찮습니다. 그런 상황이 아니라면, 다른 서비스 및 InnoDB가 아닌 테이블들의 메모리 사용량을 신중히 가늠하여 이 값을 "
+"설정하세요. 만약 이 값을 너무 높게 설정하면, 시스템은 스와핑을 하게 되고, 성능이 급격하게 떨어집니다. <a href=\""
+"http://www.mysqlperformanceblog.com/2007/11/03/choosing-"
+"innodb_buffer_pool_size/\">이 글</a> 또한 참고하세요"
 
 #: libraries/advisory_rules.txt:455
 #, php-format
@@ -14038,6 +14073,8 @@ msgid ""
 "perfectly adequate for your system if you don't have much InnoDB tables or "
 "other services running on the same machine."
 msgstr ""
+"현재, InnoDB 버퍼 풀에 할당된 메모리의 %s%%를 사용하고 있습니다. 60%%이하를 할당했다면 이 규칙이 실행됩니다. 단, "
+"InnoDB 테이블이 많이 없거나, 다른 서비스가 현재 서버에 실행중일 경우에는 이 값이 매우 적절할 수 있습니다."
 
 #: libraries/advisory_rules.txt:459
 msgid "MyISAM concurrent inserts"
