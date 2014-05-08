@@ -12,10 +12,20 @@
  */
 require_once 'libraries/Util.class.php';
 
+/**
+ ** Test for PMA_Util::containsNonPrintableAscii from common.lib
+ *
+ * @package PhpMyAdmin-test
+ * @group common.lib-tests
+ */
 class PMA_ContainsNonPrintableAsciiTest extends PHPUnit_Framework_TestCase
 {
-
-    function dataProvider()
+    /**
+     * data provider for testContainsNonPrintableAscii
+     *
+     * @return array
+     */
+    public function dataProvider()
     {
         return array(
             array("normal string", 0),
@@ -27,9 +37,16 @@ class PMA_ContainsNonPrintableAsciiTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test for containsNonPrintableAscii
+     *
+     * @param string $str Value
+     * @param bool   $res Expected value
+     *
+     * @return void
+     *
      * @dataProvider dataProvider
      */
-    function testContainsNonPrintableAscii($str, $res)
+    public function testContainsNonPrintableAscii($str, $res)
     {
         $this->assertEquals(
             $res, PMA_Util::containsNonPrintableAscii($str)

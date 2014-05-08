@@ -10,6 +10,7 @@
  * Include to test.
  */
 require_once 'libraries/url_generating.lib.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/TableSearch.class.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
@@ -20,6 +21,7 @@ require_once 'libraries/Theme.class.php';
 require_once 'libraries/Tracker.class.php';
 require_once 'libraries/Types.class.php';
 require_once 'libraries/relation.lib.php';
+require_once 'libraries/url_generating.lib.php';
 
 /**
  * Tests for PMA_TableSearch
@@ -112,6 +114,7 @@ class PMA_TableSearch_Test extends PHPUnit_Framework_TestCase
      * Test for __construct
      *
      * @return void
+     * @group medium
      */
     public function testConstruct()
     {
@@ -131,6 +134,7 @@ class PMA_TableSearch_Test extends PHPUnit_Framework_TestCase
      * Test for getSelectionForm
      *
      * @return void
+     * @group medium
      */
     public function testGetSelectionForm()
     {

@@ -14,7 +14,12 @@ require_once 'libraries/engines/binlog.lib.php';
 require_once 'libraries/database_interface.inc.php';
 require_once 'libraries/Tracker.class.php';
 
-class PMA_StorageEngine_binlog_Test extends PHPUnit_Framework_TestCase
+/**
+ * Tests for PMA_StorageEngine_binlog
+ *
+ * @package PhpMyAdmin-test
+ */
+class PMA_StorageEngine_Binlog_Test extends PHPUnit_Framework_TestCase
 {
     /**
      * @access protected
@@ -30,7 +35,7 @@ class PMA_StorageEngine_binlog_Test extends PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->object = new PMA_StorageEngine_binlog('binlog');
+        $this->object = new PMA_StorageEngine_Binlog('binlog');
     }
 
     /**
@@ -48,6 +53,8 @@ class PMA_StorageEngine_binlog_Test extends PHPUnit_Framework_TestCase
 
     /**
      * Test for getMysqlHelpPage
+     *
+     * @return void
      */
     public function testGetMysqlHelpPage()
     {

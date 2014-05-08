@@ -12,10 +12,23 @@
  */
 require_once 'libraries/Util.class.php';
 
+/**
+ ** Test for PMA_Util::convertBitDefaultValue from common.lib
+ *
+ * @package PhpMyAdmin-test
+ * @group common.lib-tests
+ */
 class PMA_ConvertBitDefaultValueTest extends PHPUnit_Framework_TestCase
 {
 
-    function dataProvider()
+    /**
+     * Provider for testConvertBitDefaultValueTest
+     *
+     * @return array
+     *
+     * @dataProvider dataProvider
+     */
+    public function dataProvider()
     {
         return array(
             array("b'",""),
@@ -25,9 +38,16 @@ class PMA_ConvertBitDefaultValueTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test for convertBitDefaultValue
+     *
+     * @param string $bit Value
+     * @param string $val Expected value
+     *
+     * @return void
+     *
      * @dataProvider dataProvider
      */
-    function testConvert_bit_default_value_test($bit, $val)
+    public function testConvertBitDefaultValueTest($bit, $val)
     {
         $this->assertEquals(
             $val, PMA_Util::convertBitDefaultValue($bit)

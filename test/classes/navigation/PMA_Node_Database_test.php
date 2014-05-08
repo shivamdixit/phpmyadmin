@@ -9,6 +9,7 @@
 require_once 'libraries/navigation/NodeFactory.class.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
+require_once 'libraries/php-gettext/gettext.inc';
 
 /**
  * Tests for Node_Database class
@@ -26,6 +27,8 @@ class Node_Database_Test extends PHPUnit_Framework_TestCase
     {
         $GLOBALS['server'] = 0;
         $GLOBALS['token'] = 'token';
+        $GLOBALS['cfg']['DefaultTabDatabase'] = 'db_structure.php';
+        $GLOBALS['cfg']['MaxNavigationItems'] = 250;
         $_SESSION['PMA_Theme'] = PMA_Theme::load('./themes/pmahomme');
     }
 

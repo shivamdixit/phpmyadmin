@@ -6,6 +6,7 @@
  * @package PhpMyAdmin-test
  */
 require_once 'libraries/plugins/export/ExportYaml.class.php';
+require_once 'libraries/export.lib.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
 require_once 'libraries/Config.class.php';
@@ -17,6 +18,7 @@ require_once 'export.php';
  * tests for ExportYaml class
  *
  * @package PhpMyAdmin-test
+ * @group medium
  */
 class PMA_ExportYaml_Test extends PHPUnit_Framework_TestCase
 {

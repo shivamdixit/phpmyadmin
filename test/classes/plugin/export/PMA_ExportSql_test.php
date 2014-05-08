@@ -6,16 +6,25 @@
  * @package PhpMyAdmin-test
  */
 require_once 'libraries/plugins/export/ExportSql.class.php';
+require_once 'libraries/DatabaseInterface.class.php';
+require_once 'libraries/export.lib.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
 require_once 'libraries/Config.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 require_once 'libraries/config.default.php';
+require_once 'libraries/mysql_charsets.lib.php';
+require_once 'libraries/relation.lib.php';
+require_once 'libraries/transformations.lib.php';
+require_once 'libraries/Table.class.php';
+require_once 'libraries/sqlparser.lib.php';
+require_once 'libraries/charset_conversion.lib.php';
 require_once 'export.php';
 /**
  * tests for ExportSql class
  *
  * @package PhpMyAdmin-test
+ * @group medium
  */
 class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
 {
@@ -28,6 +37,10 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
      */
     function setup()
     {
+        if (!defined("PMA_DRIZZLE")) {
+            define("PMA_DRIZZLE", false);
+        }
+
         $GLOBALS['server'] = 0;
         $GLOBALS['output_kanji_conversion'] = false;
         $GLOBALS['buffer_needed'] = false;
@@ -54,6 +67,7 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
      * Test for ExportSql::setProperties
      *
      * @return void
+     * @group medium
      */
     public function testSetProperties()
     {
@@ -262,8 +276,26 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             'Add <code>DROP TABLE / VIEW / PROCEDURE / FUNCTION</code>' .
-            '<code> / EVENT</code> statement',
+            '<code> / EVENT</code><code> / TRIGGER</code> statement',
             $leaf->getText()
+        );
+
+        $leaf = array_shift($leaves);
+        $this->assertInstanceOf(
+            'BoolPropertyItem',
+            $leaf
+        );
+
+        $leaf = array_shift($leaves);
+        $this->assertInstanceOf(
+            'BoolPropertyItem',
+            $leaf
+        );
+
+        $leaf = array_shift($leaves);
+        $this->assertInstanceOf(
+            'BoolPropertyItem',
+            $leaf
         );
 
         $leaf = array_shift($leaves);
@@ -399,7 +431,7 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
         $properties = $properties[0]->getProperties();
 
         $this->assertCount(
-            3,
+            6,
             $properties
         );
 
@@ -641,6 +673,10 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
      */
     public function testExportHeader()
     {
+        if (!defined("PMA_MYSQL_STR_VERSION")) {
+            define("PMA_MYSQL_STR_VERSION", "5.0.0");
+        }
+
         $restoreDrizzle = 'PMANORESTORE';
 
         if (PMA_DRIZZLE) {
@@ -741,6 +777,8 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
         $GLOBALS['sql_drop_database'] = true;
         $GLOBALS['sql_backquotes'] = true;
         $GLOBALS['sql_create_database'] = true;
+        $GLOBALS['sql_create_table'] = true;
+        $GLOBALS['sql_create_view'] = true;
         $GLOBALS['crlf'] = "\n";
 
         $dbi = $this->getMockBuilder('PMA_DatabaseInterface')
@@ -1101,6 +1139,7 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
      * Test for ExportSql::getTableDef
      *
      * @return void
+     * @group medium
      */
     public function testGetTableDefWithoutDrizzle()
     {
@@ -1578,6 +1617,7 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
      * Test for ExportSql::exportStructure
      *
      * @return void
+     * @group medium
      */
     public function testExportStructure()
     {
@@ -1647,6 +1687,9 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
         unset($GLOBALS['sql_compatibility']);
         unset($GLOBALS['sql_backquotes']);
 
+        $GLOBALS['sql_create_trigger'] = true;
+        $GLOBALS['sql_drop_table'] = true;
+
         ob_start();
         $this->assertTrue(
             $this->object->exportStructure(
@@ -1664,6 +1707,9 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
             "foo;\nDELIMITER //\nbarDELIMITER ;\n",
             $result
         );
+
+        unset($GLOBALS['sql_create_trigger']);
+        unset($GLOBALS['sql_drop_table']);
 
         // case 3
         $GLOBALS['sql_views_as_tables'] = false;
@@ -1740,6 +1786,7 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
      * Test for ExportSql::exportData
      *
      * @return void
+     * @group medium
      */
     public function testExportData()
     {
@@ -1871,6 +1918,7 @@ class PMA_ExportSql_Test extends PHPUnit_Framework_TestCase
      * Test for ExportSql::exportData
      *
      * @return void
+     * @group medium
      */
     public function testExportDataWithUpdate()
     {

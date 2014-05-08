@@ -24,7 +24,7 @@ require_once 'libraries/js_escape.lib.php';
 require_once 'libraries/database_interface.inc.php';
 require_once 'libraries/sql_query_form.lib.php';
 require_once 'libraries/kanji-encoding.lib.php';
-require_once 'libraries/mysql_charsets.lib.php';
+require_once 'libraries/mysql_charsets.inc.php';
 
 /**
  * class PMA_SqlQueryForm_Test
@@ -255,4 +255,3 @@ class PMA_SqlQueryForm_Test extends PHPUnit_Framework_TestCase
         );
     }
 }
-

@@ -7,12 +7,15 @@
  */
 
 require_once 'libraries/plugins/auth/AuthenticationConfig.class.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
 require_once 'libraries/Config.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 require_once 'libraries/config.default.php';
+require_once 'libraries/js_escape.lib.php';
 require_once 'libraries/Error_Handler.class.php';
+require_once 'libraries/Response.class.php';
 /**
  * tests for AuthenticationConfig class
  *
@@ -102,6 +105,11 @@ class PMA_AuthenticationConfig_Test extends PHPUnit_Framework_TestCase
             }
         }
 
+        $dbi = $this->getMockBuilder('PMA_DatabaseInterface')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $GLOBALS['dbi'] = $dbi;
+
         ob_start();
         $result = $this->object->authFails();
         $html = ob_get_clean();
@@ -118,8 +126,8 @@ class PMA_AuthenticationConfig_Test extends PHPUnit_Framework_TestCase
 
         $this->assertContains(
             '<strong>MySQL said: </strong><a href="./url.php?url=http%3A%2F%2F' .
-            'dev.mysql.com%2Fdoc%2Frefman%2F5.6%2Fen%2Ferror-messages-server.html' .
-            '&amp;server=0&amp;lang=en&amp;token=token" target="mysql_doc">' .
+            'dev.mysql.com%2Fdoc%2Frefman%2F5.6%2Fen%2Ferror-messages-server.html"' .
+            ' target="mysql_doc">' .
             '<img src="themes/dot.gif" title="Documentation" alt="Documentation" ' .
             'class="icon ic_b_help" /></a>',
             $html

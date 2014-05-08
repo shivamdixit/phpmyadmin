@@ -34,13 +34,13 @@ class PMA_ConfigTest extends PHPUnit_Framework_TestCase
      * @var PMA_Config
      */
     protected $object;
-    
+
     /**
      * @var object to test file permission
      */
     protected $permTestObj;
-    
-    
+
+
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -54,7 +54,7 @@ class PMA_ConfigTest extends PHPUnit_Framework_TestCase
         $GLOBALS['server'] = 0;
         $_SESSION['is_git_revision'] = true;
         $GLOBALS['PMA_Config'] = new PMA_Config(CONFIG_FILE);
-        
+
         //for testing file permissions
         $this->permTestObj = new PMA_Config("./config.sample.inc.php");
     }
@@ -75,6 +75,7 @@ class PMA_ConfigTest extends PHPUnit_Framework_TestCase
      * Test for CheckSystem
      *
      * @return void
+     * @group medium
      */
     public function testCheckSystem()
     {
@@ -568,9 +569,6 @@ class PMA_ConfigTest extends PHPUnit_Framework_TestCase
      * Test getting and setting config values
      *
      * @return void
-     *
-     * @covers PMA_Config::get
-     * @covers PMA_Config::set
      */
     public function testGetAndSet()
     {
@@ -585,9 +583,6 @@ class PMA_ConfigTest extends PHPUnit_Framework_TestCase
      * Tests setting configuration source
      *
      * @return void
-     *
-     * @covers PMA_Config::getSource
-     * @covers PMA_Config::setSource
      */
     public function testGetSetSource()
     {
@@ -966,14 +961,14 @@ class PMA_ConfigTest extends PHPUnit_Framework_TestCase
         $perms = @fileperms($this->object->getSource());
         //testing for permissions for no configration file
         $this->assertFalse(!($perms === false) && ($perms & 2));
-        
+
         //load file permissions for the current permissions file
         $perms = @fileperms($this->permTestObj->getSource());
-        //testing for permissions 
+        //testing for permissions
         $this->assertFalse(!($perms === false) && ($perms & 2));
-        
+
         //if the above assertion is false then applying further assertions
-        if(!($perms === false) && ($perms & 2)) {             
+        if (!($perms === false) && ($perms & 2)) {
             $this->assertFalse($this->permTestObj->get('PMA_IS_WINDOWS') == 0);
         }
     }
@@ -1043,6 +1038,9 @@ class PMA_ConfigTest extends PHPUnit_Framework_TestCase
      */
     public function testCheckHTTP()
     {
+        if (! function_exists('curl_init')) {
+            $this->markTestSkipped('Missing curl extension!');
+        }
         $this->assertTrue(
             $this->object->checkHTTP("http://www.phpmyadmin.net/test/data")
         );

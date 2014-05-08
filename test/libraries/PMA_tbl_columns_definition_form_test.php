@@ -11,9 +11,14 @@
  */
 require_once 'libraries/Util.class.php';
 require_once 'libraries/tbl_columns_definition_form.lib.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/Partition.class.php';
 require_once 'libraries/Types.class.php';
+require_once 'libraries/Theme.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
+require_once 'libraries/transformations.lib.php';
+require_once 'libraries/mysql_charsets.inc.php';
+require_once 'libraries/StorageEngine.class.php';
 
 /**
  * Tests for libraries/tbl_columns_definition_form.lib.php
@@ -33,6 +38,10 @@ class PMA_TblColumnsDefinitionFormTest extends PHPUnit_Framework_TestCase
         $GLOBALS['cfg']['DBG'] = null;
         $GLOBALS['cfg']['TextareaCols'] = 10;
         $GLOBALS['cfg']['TextareaRows'] = 15;
+        $GLOBALS['pmaThemeImage'] = 'image';
+
+        $_SESSION['PMA_Theme'] = PMA_Theme::load('./themes/pmahomme');
+        $_SESSION['PMA_Theme'] = new PMA_Theme();
     }
 
     /**
@@ -608,7 +617,9 @@ class PMA_TblColumnsDefinitionFormTest extends PHPUnit_Framework_TestCase
     public function testGetHtmlForColumnName()
     {
         $result = PMA_getHtmlForColumnName(
-            2, 4, 4, array('Field' => "fieldname")
+            2, 4, 4, array('Field' => "fieldname",
+            'column_status' => array('isReferenced' => false,
+            'isForeignKey' => false, 'isEditable' => true))
         );
 
         $this->assertTag(
@@ -630,7 +641,8 @@ class PMA_TblColumnsDefinitionFormTest extends PHPUnit_Framework_TestCase
     {
         $GLOBALS['PMA_Types'] = new PMA_Types;
         $result = PMA_getHtmlForColumnType(
-            1, 4, 3, false
+            1, 4, 3, false, array('column_status' => array('isReferenced' => false,
+            'isForeignKey' => false, 'isEditable' => true))
         );
 
         $this->assertTag(
@@ -691,7 +703,7 @@ class PMA_TblColumnsDefinitionFormTest extends PHPUnit_Framework_TestCase
 
         $mime = array(
             'fieldname' => array(
-                'transformation' => 'Text_Plain_Append.class.php',
+                'transformation' => 'Text_Plain_Preappend.class.php',
                 'transformation_options' => 'transops'
             )
         );
@@ -701,7 +713,7 @@ class PMA_TblColumnsDefinitionFormTest extends PHPUnit_Framework_TestCase
                 'foo' => 'bar'
             ),
             'transformation_file' => array(
-                'foo' => 'Text_Plain_Append.class.php'
+                'foo' => 'Text_Plain_Preappend.class.php'
             )
         );
         $result = PMA_getHtmlForBrowserTransformation(
@@ -711,16 +723,6 @@ class PMA_TblColumnsDefinitionFormTest extends PHPUnit_Framework_TestCase
         $this->assertTag(
             PMA_getTagArray(
                 '<select id="field_2_0" size="1" name="field_transformation[2]">'
-            ),
-            $result
-        );
-
-        $this->assertTag(
-            PMA_getTagArray(
-                '<option value="Text_Plain_Append.class.php" title="'
-                . 'Appends text to a string. The only option is the text to be '
-                . 'appended (enclosed in single quotes, default empty string).">',
-                array('content' => 'bar')
             ),
             $result
         );

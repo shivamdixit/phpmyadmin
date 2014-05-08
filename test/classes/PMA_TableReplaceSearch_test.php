@@ -11,7 +11,9 @@ require_once 'libraries/Util.class.php';
  * Include to test.
  */
 require_once 'libraries/TableSearch.class.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
+require_once 'libraries/url_generating.lib.php';
 
 /**
  * Tests for libraries/TableSearch.class.php with search type replace
@@ -61,6 +63,7 @@ class PMA_TableReplaceSearchTest extends PHPUnit_Framework_TestCase
      * Tests getReplacePreview() method
      *
      * @return void
+     * @group medium
      */
     public function testGetReplacePreview()
     {

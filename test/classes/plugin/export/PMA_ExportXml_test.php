@@ -7,8 +7,11 @@
  */
 $GLOBALS['db'] = 'db';
 require_once 'libraries/plugins/export/ExportXml.class.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/Util.class.php';
+require_once 'libraries/export.lib.php';
 require_once 'libraries/Theme.class.php';
+require_once 'libraries/Table.class.php';
 require_once 'libraries/Config.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 require_once 'libraries/config.default.php';
@@ -17,6 +20,7 @@ require_once 'export.php';
  * tests for ExportXml class
  *
  * @package PhpMyAdmin-test
+ * @group medium
  */
 class PMA_ExportXml_Test extends PHPUnit_Framework_TestCase
 {
@@ -29,6 +33,10 @@ class PMA_ExportXml_Test extends PHPUnit_Framework_TestCase
      */
     function setup()
     {
+        if (!defined("PMA_DRIZZLE")) {
+            define("PMA_DRIZZLE", false);
+        }
+
         $GLOBALS['server'] = 0;
         $GLOBALS['output_kanji_conversion'] = false;
         $GLOBALS['buffer_needed'] = false;
@@ -55,6 +63,7 @@ class PMA_ExportXml_Test extends PHPUnit_Framework_TestCase
      * Test for ExportXml::setProperties
      *
      * @return void
+     * @group medium
      */
     public function testSetProperties()
     {
@@ -213,9 +222,14 @@ class PMA_ExportXml_Test extends PHPUnit_Framework_TestCase
      * Test for ExportXml::exportHeader
      *
      * @return void
+     * @group medium
      */
     public function testExportHeaderWithoutDrizzle()
     {
+        if (!defined("PMA_MYSQL_STR_VERSION")) {
+            define("PMA_MYSQL_STR_VERSION", "5.0.0");
+        }
+
         $restoreDrizzle = 'PMANORESTORE';
 
         if (PMA_DRIZZLE) {

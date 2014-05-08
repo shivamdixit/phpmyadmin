@@ -69,16 +69,6 @@ class PMA_ConfigFile_Test extends PHPUnit_Framework_TestCase
             $this->object->getDefault('fontsize')
         );
 
-        if (extension_loaded('mysqli')) {
-            $expect = "mysqli";
-        } else {
-            $expect = "mysql";
-        }
-
-        $this->assertEquals(
-            $expect,
-            $this->object->getDefault('Servers/1/extension')
-        );
         $this->assertEquals(
             array(),
             $this->object->getConfig()
@@ -346,6 +336,7 @@ class PMA_ConfigFile_Test extends PHPUnit_Framework_TestCase
      *
      * @return void
      * @test
+     * @group medium
      */
     public function testGetFlatDefaultConfig()
     {
@@ -506,7 +497,6 @@ class PMA_ConfigFile_Test extends PHPUnit_Framework_TestCase
             array(
                 'Servers' => array(
                     1 => array(
-                        "extension" => "mysqli",
                         "auth_type" => "config",
                         "user" => "testUser",
                         "connect_type" => "tcp",
@@ -525,7 +515,6 @@ class PMA_ConfigFile_Test extends PHPUnit_Framework_TestCase
             array(
                 'Servers' => array(
                     1 => array(
-                        "extension" => "mysql",
                         "auth_type" => "config",
                         "user" => "testUser",
                         "connect_type" => "socket",
@@ -538,7 +527,7 @@ class PMA_ConfigFile_Test extends PHPUnit_Framework_TestCase
             )
         );
         $this->assertEquals(
-            "mysql://testUser@123",
+            "mysqli://testUser@123",
             $this->object->getServerDSN(1)
         );
     }

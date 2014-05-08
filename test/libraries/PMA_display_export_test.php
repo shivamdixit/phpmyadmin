@@ -32,6 +32,7 @@ require_once 'libraries/relation.lib.php';
  * this class is for testing display_export.lib.php functions
  *
  * @package PhpMyAdmin-test
+ * @group large
  */
 class PMA_DisplayExport_Test extends PHPUnit_Framework_TestCase
 {
@@ -44,6 +45,7 @@ class PMA_DisplayExport_Test extends PHPUnit_Framework_TestCase
     {
         //$GLOBALS
         $GLOBALS['cfg']['MaxRows'] = 10;
+        $GLOBALS['cfg']['ExecTimeLimit'] = 300;
         $GLOBALS['cfg']['ServerDefault'] = "PMA_server";
         $GLOBALS['cfg']['TableNavigationLinksMode'] = 'icons';
         $GLOBALS['cfg']['LimitChars'] = 100;

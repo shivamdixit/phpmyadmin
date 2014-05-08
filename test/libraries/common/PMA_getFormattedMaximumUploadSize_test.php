@@ -13,11 +13,19 @@
 require_once 'libraries/Util.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 
+/**
+ ** Test for PMA_Util::getFormattedMaximumUploadSize from Util.class.php
+ *
+ * @package PhpMyAdmin-test
+ * @group common.lib-tests
+ */
 class PMA_GetFormattedMaximumUploadSize_Test extends PHPUnit_Framework_TestCase
 {
 
-    /*
+    /**
      * Data provider for test
+     *
+     * @return array
      */
     public function dataProvider()
     {
@@ -33,13 +41,20 @@ class PMA_GetFormattedMaximumUploadSize_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider dataProvider
+     * Test for PMA_Util::getFormattedMaximumUploadSize
+     *
+     * @param int    $size Size
+     * @param string $unit Unit
+     * @param string $res  Result
+     *
      * @return void
+     *
+     * @dataProvider dataProvider
      */
     function testMaximumUploadSize($size, $unit, $res)
     {
         $this->assertEquals(
-            "(" . __('Max: '). $res . $unit .")",
+            "(" . __('Max: ') . $res . $unit . ")",
             PMA_Util::getFormattedMaximumUploadSize($size)
         );
 

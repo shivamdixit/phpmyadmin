@@ -9,6 +9,7 @@
 require_once 'libraries/navigation/NodeFactory.class.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
+require_once 'libraries/php-gettext/gettext.inc';
 
 /**
  * Tests for Node_Table class
@@ -26,6 +27,13 @@ class Node_Table_Test extends PHPUnit_Framework_TestCase
     {
         $GLOBALS['server'] = 0;
         $GLOBALS['token'] = 'token';
+        $GLOBALS['cfg']['NavigationTreeDefaultTabTable'] = 'b_browse';
+        $GLOBALS['cfg']['DefaultTabTable'] = 'sql.php';
+        $GLOBALS['cfg']['MaxNavigationItems'] = 250;
+        $GLOBALS['cfg']['NavigationTreeEnableGrouping'] = true;
+        $GLOBALS['cfg']['NavigationTreeDbSeparator'] = '_';
+        $GLOBALS['cfg']['NavigationTreeTableSeparator'] = '__';
+        $GLOBALS['cfg']['NavigationTreeTableLevel'] = 1;
         $_SESSION['PMA_Theme'] = PMA_Theme::load('./themes/pmahomme');
     }
 

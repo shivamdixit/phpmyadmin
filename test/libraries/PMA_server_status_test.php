@@ -136,6 +136,7 @@ class PMA_ServerStatus_Test extends PHPUnit_Framework_TestCase
      * Test for PMA_getHtmlForServerStatus
      *
      * @return void
+     * @group medium
      */
     public function testPMAGetHtmlForServerStatus()
     {
@@ -306,4 +307,3 @@ class PMA_ServerStatus_Test extends PHPUnit_Framework_TestCase
         );
     }
 }
-

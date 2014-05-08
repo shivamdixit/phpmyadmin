@@ -135,6 +135,7 @@ class PMA_ServerStatusAdvisor_Test extends PHPUnit_Framework_TestCase
      * Test for PMA_getHTMLForAdvisor
      *
      * @return void
+     * @group medium
      */
     public function testPMAGetHTMLForAdvisor()
     {
@@ -182,4 +183,3 @@ class PMA_ServerStatusAdvisor_Test extends PHPUnit_Framework_TestCase
         );
     }
 }
-

@@ -18,7 +18,12 @@ require_once 'libraries/core.lib.php';
 require_once 'libraries/database_interface.inc.php';
 require_once 'libraries/Tracker.class.php';
 
-class PMA_StorageEngine_pbxt_Test extends PHPUnit_Framework_TestCase
+/**
+ * Tests for PMA_StorageEngine_pbxt
+ *
+ * @package PhpMyAdmin-test
+ */
+class PMA_StorageEngine_Pbxt_Test extends PHPUnit_Framework_TestCase
 {
     /**
      * @access protected
@@ -34,7 +39,7 @@ class PMA_StorageEngine_pbxt_Test extends PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->object = new PMA_StorageEngine_pbxt('pbxt');
+        $this->object = new PMA_StorageEngine_Pbxt('pbxt');
     }
 
     /**
@@ -127,6 +132,7 @@ class PMA_StorageEngine_pbxt_Test extends PHPUnit_Framework_TestCase
      * Test for resolveTypeSize
      *
      * @param string $formatted_size the size expression (for example 8MB)
+     * @param string $output         Expected output
      *
      * @dataProvider providerFortTestResolveTypeSize
      *

@@ -7,6 +7,7 @@
  */
 
 require_once 'libraries/plugins/auth/AuthenticationHttp.class.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Message.class.php';
 require_once 'libraries/Theme.class.php';
@@ -14,6 +15,7 @@ require_once 'libraries/Config.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 require_once 'libraries/config.default.php';
 require_once 'libraries/Error_Handler.class.php';
+require_once 'libraries/sanitizing.lib.php';
 
 /**
  * tests for AuthenticationHttp class
@@ -37,6 +39,11 @@ class PMA_AuthenticationHttp_Test extends PHPUnit_Framework_TestCase
         $GLOBALS['PMA_Config'] = new PMA_Config;
         $GLOBALS['PMA_Config']->enableBc();
         $GLOBALS['server'] = 0;
+        $GLOBALS['lang'] = "en";
+        $GLOBALS['available_languages'] = array(
+            "en" => array("English", "US-ENGLISH"),
+            "ch" => array("Chinese", "TW-Chinese")
+        );
         $this->object = new AuthenticationHttp(null);
     }
 
@@ -104,7 +111,7 @@ class PMA_AuthenticationHttp_Test extends PHPUnit_Framework_TestCase
 
         $mockHeader->expects($this->once())
             ->method('setTitle')
-            ->with('Access denied');
+            ->with('Access denied!');
 
         $mockHeader->expects($this->once())
             ->method('disableMenu')

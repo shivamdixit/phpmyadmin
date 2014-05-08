@@ -6,16 +6,21 @@
  * @package PhpMyAdmin-test
  */
 require_once 'libraries/plugins/export/ExportLatex.class.php';
+require_once 'libraries/export.lib.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
 require_once 'libraries/Config.class.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 require_once 'libraries/config.default.php';
+require_once 'libraries/relation.lib.php';
+require_once 'libraries/transformations.lib.php';
 require_once 'export.php';
 /**
  * tests for ExportLatex class
  *
  * @package PhpMyAdmin-test
+ * @group medium
  */
 class PMA_ExportLatex_Test extends PHPUnit_Framework_TestCase
 {
@@ -28,6 +33,10 @@ class PMA_ExportLatex_Test extends PHPUnit_Framework_TestCase
      */
     function setup()
     {
+        if (!defined("PMA_DRIZZLE")) {
+            define("PMA_DRIZZLE", false);
+        }
+
         $GLOBALS['server'] = 0;
         $GLOBALS['output_kanji_conversion'] = false;
         $GLOBALS['output_charset_conversion'] = false;
@@ -469,6 +478,10 @@ class PMA_ExportLatex_Test extends PHPUnit_Framework_TestCase
      */
     public function testExportHeader()
     {
+        if (!defined("PMA_MYSQL_STR_VERSION")) {
+            define("PMA_MYSQL_STR_VERSION", "5.0.0");
+        }
+
         $GLOBALS['crlf'] = "\n";
         $GLOBALS['cfg']['Server']['port'] = 80;
         $GLOBALS['cfg']['Server']['host'] = 'localhost';

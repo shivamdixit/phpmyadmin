@@ -18,6 +18,9 @@ require_once 'libraries/config.default.php';
 require_once 'libraries/Error_Handler.class.php';
 require_once 'libraries/Response.class.php';
 require_once 'libraries/js_escape.lib.php';
+require_once 'libraries/sanitizing.lib.php';
+require_once 'libraries/database_interface.inc.php';
+require_once 'libraries/select_lang.lib.php';
 
 /**
  * tests for AuthenticationCookie class
@@ -37,7 +40,17 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
     {
         $GLOBALS['PMA_Config']->enableBc();
         $GLOBALS['server'] = 0;
+        $GLOBALS['available_languages'] = array(
+            "en" => array("English", "US-ENGLISH"),
+            "ch" => array("Chinese", "TW-Chinese")
+        );
+        $GLOBALS['text_dir'] = 'ltr';
+        $GLOBALS['db'] = 'db';
+        $GLOBALS['table'] = 'table';
         $this->object = new AuthenticationCookie(null);
+
+        $_SESSION['PMA_Theme'] = PMA_Theme::load('./themes/pmahomme');
+        $_SESSION['PMA_Theme'] = new PMA_Theme();
     }
 
     /**
@@ -54,6 +67,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
      * Test for AuthenticationConfig::auth
      *
      * @return void
+     * @group medium
      */
     public function testAuth()
     {
@@ -77,11 +91,8 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $mockResponse->expects($this->once())
             ->method('addJSON')
             ->with(
-                'message',
-                PMA_Message::error(
-                    '1<br /><br />[ <a href="https://phpmyadmin.net/" ' .
-                    'class="ajax login-link">Log in</a> ]'
-                )
+                'redirect_flag',
+                '1'
             );
 
         $attrInstance = new ReflectionProperty('PMA_Response', '_instance');
@@ -92,43 +103,8 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $this->assertTrue(
             $this->object->auth()
         );
+
         // Case 2
-
-        $mockResponse = $this->getMockBuilder('PMA_Response')
-            ->disableOriginalConstructor()
-            ->setMethods(array('isAjax', 'isSuccess', 'addJSON'))
-            ->getMock();
-
-        $mockResponse->expects($this->once())
-            ->method('isAjax')
-            ->with()
-            ->will($this->returnValue(true));
-
-        $mockResponse->expects($this->once())
-            ->method('isSuccess')
-            ->with(false);
-
-        $mockResponse->expects($this->once())
-            ->method('addJSON')
-            ->with(
-                'message',
-                PMA_Message::error(
-                    'Your session has expired. Please log in again.' .
-                    '<br /><br />[ <a href="https://phpmyadmin.net/" ' .
-                    'class="ajax login-link">Log in</a> ]'
-                )
-            );
-
-        $attrInstance = new ReflectionProperty('PMA_Response', '_instance');
-        $attrInstance->setAccessible(true);
-        $attrInstance->setValue(null, $mockResponse);
-        $GLOBALS['conn_error'] = '';
-
-        $this->assertTrue(
-            $this->object->auth()
-        );
-
-        // case 3
 
         $mockResponse = $this->getMockBuilder('PMA_Response')
             ->disableOriginalConstructor()
@@ -313,7 +289,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
 
         @unlink('testlogo_right.png');
 
-        // case 4
+        // case 3
 
         $mockResponse = $this->getMockBuilder('PMA_Response')
             ->disableOriginalConstructor()
@@ -908,7 +884,11 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         // target can be "phpunit" or "ide-phpunut.php",
         // depending on testing environment
         $this->assertStringStartsWith(
-            'Location: http://phpmyadmin.net/index.php?target=',
+            'Location: http://phpmyadmin.net/index.php?',
+            $GLOBALS['header'][0]
+        );
+        $this->assertContains(
+            '&target=',
             $GLOBALS['header'][0]
         );
         $this->assertContains(
@@ -972,7 +952,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             $GLOBALS['conn_error'],
-            'Access denied'
+            'Access denied!'
         );
 
         // case 3
@@ -1078,7 +1058,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
                 $this->object->blowfishEncrypt('data123', 'sec321')
             );
         } else {
-            //using our own iv for testing 
+            //using our own iv for testing
             $tmp = $GLOBALS['iv'];
             $GLOBALS['iv'] = "testiv09";
             $this->assertEquals(
@@ -1097,8 +1077,8 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
     public function testBlowfishDecrypt()
     {
         if (function_exists('mcrypt_encrypt')) {
-            
-            //using our own iv for testing 
+
+            //using our own iv for testing
             $tmp = $GLOBALS['iv'];
             $GLOBALS['iv'] = "testiv09";
             $this->assertEquals(
@@ -1106,7 +1086,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
                 $this->object->blowfishDecrypt('x/2GwHKoPyc=', 'sec321')
             );
             $GLOBALS['iv'] = $tmp;
-            
+
         } else {
             $this->assertEquals(
                 'data123',

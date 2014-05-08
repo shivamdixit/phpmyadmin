@@ -200,6 +200,7 @@ class PMA_ServerStatusVariables_Test extends PHPUnit_Framework_TestCase
      * Test for PMA_getHtmlForVariablesList
      *
      * @return void
+     * @group medium
      */
     public function testPMAGetHtmlForVariablesList()
     {
@@ -252,4 +253,3 @@ class PMA_ServerStatusVariables_Test extends PHPUnit_Framework_TestCase
         );
     }
 }
-

@@ -13,8 +13,20 @@
  */
 require_once 'libraries/core.lib.php';
 
+/**
+ * Test for PMA_arrayRead(), PMA_arrayWrite(), PMA_arrayRemove(),
+ * PMA_arrayMergeRecursive(),
+ * PMA_arrayWalkRecursive() from libraries/core.lib.php
+ *
+ * @package PhpMyAdmin-test
+ */
 class PMA_Array_Test extends PHPUnit_Framework_TestCase
 {
+    /**
+     * Test for PMA_arrayRead
+     *
+     * @return void
+     */
     function testRead()
     {
         $arr = array(
@@ -98,6 +110,11 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * Test for PMA_arrayWrite
+     *
+     * @return void
+     */
     function testWrite()
     {
         $arr = array(
@@ -147,6 +164,11 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
         $this->assertNull($arr['sarr'][0][2]);
     }
 
+    /**
+     * Test for PMA_arrayRemove
+     *
+     * @return void
+     */
     function testRemove()
     {
         $arr = array(
@@ -204,6 +226,11 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
         $this->assertEmpty($arr);
     }
 
+    /**
+     * Test for PMA_arrayMergeRecursive
+     *
+     * @return void
+     */
     function testMergeRecursive()
     {
         $arr1 = array('key1' => 1, 'key2' => 2.3, 'key3' => 'str3');
@@ -251,9 +278,20 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
         );
     }
 
-
+    /**
+     * Test for PMA_arrayWalkRecursive
+     *
+     * @return void
+     */
     function testWalkRecursive()
     {
+        /**
+         * Concat a variable to a string
+         *
+         * @param string $var Variable to concat
+         *
+         * @return string
+         */
         function fConcat($var)
         {
             return 'val: ' . $var . ' processed';
@@ -272,10 +310,21 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test for PMA_arrayWalkRecursive
+     *
+     * @return void
+     *
      * @depends testWalkRecursive
      */
     function testWalkRecursiveNotProcessIntKeys()
     {
+        /**
+         * Increment a variable
+         *
+         * @param int $var Variable to increment
+         *
+         * @return int
+         */
         function fAdd($var)
         {
             return ++$var;
@@ -289,6 +338,10 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test for PMA_arrayWalkRecursive
+     *
+     * @return void
+     *
      * @depends testWalkRecursiveNotProcessIntKeys
      */
     function testWalkRecursiveSubArray()
@@ -310,6 +363,11 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
         $this->assertEquals($arr, $target);
     }
 
+    /**
+     * Test for PMA_arrayWalkRecursive
+     *
+     * @return void
+     */
     function testWalkRecursiveApplyToKeysStripSlashes()
     {
         $arr = array(
@@ -317,13 +375,61 @@ class PMA_Array_Test extends PHPUnit_Framework_TestCase
             'k\\ey2'=>array('s\\\\key1'=>'sval\\1', 's\\k\\ey2'=>'s\\v\\al2'),
             'key3'=>'val3'
         );
+        $second = $arr;
         $target = array(
-            "key1"=>'val1',
-            'key2'=>array('skey1'=>'sval1', 'skey2'=>'sval2'),
+            "key1"=>'v\\al1',
+            'key2'=>array('s\\key1'=>'sval1', 'skey2'=>'sval2'),
             'key3'=>'val3'
         );
 
         PMA_arrayWalkRecursive($arr, 'stripslashes', true);
         $this->assertEquals($arr, $target);
+        PMA_arrayWalkRecursive($second, 'stripslashes', true);
+        $this->assertEquals($second, $target);
+    }
+
+    /**
+     * Test for PMA_arrayKeyExists
+     *
+     * @param boolean $expected Expected result of the function
+     * @param string  $path     Path in the array
+     * @param array   $array    The array
+     *
+     * @return void
+     *
+     * @dataProvider provArrayKeyExists
+     */
+    function testArrayKeyExists($expected, $path, $array)
+    {
+        $this->assertEquals($expected, PMA_arrayKeyExists($path, $array));
+    }
+
+    /**
+     * Data provider for testArrayKeyExists
+     *
+     * @return array
+     */
+    function provArrayKeyExists()
+    {
+        return array(
+            array(true, 'k1', array('k1' => array())),
+            array(true, 'k1/k2', array('k1' => array('k2' => array()))),
+            array(
+                true, 'k1/k2', array('k1' => array('k3' => array(), 'k2' => array()))
+            ),
+            array(
+                true, 'k1/k2', array('k1' => array('k2' => array('k3' => array())))
+            ),
+            array(
+                true,
+                'k1/k2/k3',
+                array('k1' => array('k2' => array('k3' => array())))
+            ),
+            array(false, '', array('k1' => array())),
+            array(false, 'k1/k2', array('k1' => array())),
+            array(false, 'k1/k2', array('k1' => array(), 'k2' => array())),
+            array(false, 'k1/k3', array('k1' => array('k2' => array()))),
+            array(false, 'k2', array('k1' => array('k2' => array()))),
+        );
     }
 }

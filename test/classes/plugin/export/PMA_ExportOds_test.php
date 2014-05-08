@@ -7,6 +7,7 @@
  */
 require_once 'libraries/plugins/export/ExportOds.class.php';
 require_once 'libraries/DatabaseInterface.class.php';
+require_once 'libraries/export.lib.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
 require_once 'libraries/Config.class.php';
@@ -17,6 +18,7 @@ require_once 'export.php';
  * tests for ExportOds class
  *
  * @package PhpMyAdmin-test
+ * @group medium
  */
 class PMA_ExportOds_Test extends PHPUnit_Framework_TestCase
 {

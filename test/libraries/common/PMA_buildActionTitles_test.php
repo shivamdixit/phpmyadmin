@@ -14,9 +14,19 @@ require_once 'libraries/Util.class.php';
 require_once 'libraries/Theme.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 
+/**
+ * Test for PMA_Util::buildActionTitles from common.lib
+ *
+ * @package PhpMyAdmin-test
+ * @group common.lib-tests
+ */
 class PMA_BuildActionTitles_Test extends PHPUnit_Framework_TestCase
 {
-
+    /**
+     * Set up
+     *
+     * @return void
+     */
     function setup()
     {
         $_SESSION['PMA_Theme'] = PMA_Theme::load('./themes/pmahomme');
@@ -24,6 +34,11 @@ class PMA_BuildActionTitles_Test extends PHPUnit_Framework_TestCase
         $GLOBALS['pmaThemeImage'] = 'theme/';
     }
 
+    /**
+     * Test for buildActionTitles
+     *
+     * @return void
+     */
     function testBuildActionTitles()
     {
         $titles = array();
@@ -44,6 +59,8 @@ class PMA_BuildActionTitles_Test extends PHPUnit_Framework_TestCase
         $titles['NoExport']   = PMA_Util::getIcon('bd_export.png', __('Export'));
         $titles['Execute']    = PMA_Util::getIcon('b_nextpage.png', __('Execute'));
         $titles['NoExecute']  = PMA_Util::getIcon('bd_nextpage.png', __('Execute'));
+        $titles['Favorite']   = PMA_Util::getIcon('b_favorite.png', '');
+        $titles['NoFavorite'] = PMA_Util::getIcon('b_no_favorite.png', '');
 
         $this->assertEquals($titles, PMA_Util::buildActionTitles());
 

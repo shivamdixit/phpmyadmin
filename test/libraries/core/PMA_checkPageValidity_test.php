@@ -11,6 +11,11 @@
  */
 require_once 'libraries/core.lib.php';
 
+/**
+ * Tests for PMA_checkPageValidity() from libraries/core.lib.php
+ *
+ * @package PhpMyAdmin-test
+ */
 class PMA_CheckPageValidity_Test extends PHPUnit_Framework_TestCase
 {
     protected $goto_whitelist = array(
@@ -34,38 +39,35 @@ class PMA_CheckPageValidity_Test extends PHPUnit_Framework_TestCase
         'user_password.php',
     );
 
-    function testGotoNowhere()
+    /**
+     * Test for PMA_checkPageValidity
+     *
+     * @param string     $page      Page
+     * @param array|null $whiteList White list
+     * @param int        $expected  Expected value
+     *
+     * @return void
+     *
+     * @dataProvider provider
+     */
+    function testGotoNowhere($page, $whiteList, $expected)
     {
-        $page = null;
-        $this->assertFalse(PMA_checkPageValidity($page, null));
+        $this->assertTrue($expected === PMA_checkPageValidity($page, $whiteList));
     }
 
-    function testGotoWhitelist()
+    /**
+     * Data provider for testGotoNowhere
+     *
+     * @return array
+     */
+    public function provider()
     {
-        $page = 'export.php';
-
-        $this->assertTrue(PMA_checkPageValidity($page, $this->goto_whitelist));
+        return array(
+            array(null, null, false),
+            array('export.php', $this->goto_whitelist, true),
+            array('shell.php', $this->goto_whitelist, false),
+            array('index.php?sql.php&test=true', $this->goto_whitelist, true),
+            array('index.php%3Fsql.php%26test%3Dtrue', $this->goto_whitelist, true),
+        );
     }
-
-    function testGotoNotInWhitelist()
-    {
-        $page = 'shell.php';
-
-        $this->assertFalse(PMA_checkPageValidity($page, $this->goto_whitelist));
-    }
-
-    function testGotoWhitelistPage()
-    {
-        $page = 'index.php?sql.php&test=true';
-
-        $this->assertTrue(PMA_checkPageValidity($page, $this->goto_whitelist));
-    }
-
-    function testGotoWhitelistEncodedPage()
-    {
-        $page = 'index.php%3Fsql.php%26test%3Dtrue';
-
-        $this->assertTrue(PMA_checkPageValidity($page, $this->goto_whitelist));
-    }
-
 }

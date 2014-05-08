@@ -130,6 +130,7 @@ class PMA_ServerStatusMonitor_Test extends PHPUnit_Framework_TestCase
      * Test for PMA_getHtmlForMonitor
      *
      * @return void
+     * @group medium
      */
     public function testPMAGetHtmlForMonitor()
     {
@@ -428,4 +429,3 @@ class PMA_ServerStatusMonitor_Test extends PHPUnit_Framework_TestCase
         );
     }
 }
-

@@ -7,12 +7,14 @@
  */
 
 require_once 'libraries/plugins/auth/AuthenticationSignon.class.php';
+require_once 'libraries/DatabaseInterface.class.php';
 require_once 'libraries/Util.class.php';
 require_once 'libraries/Message.class.php';
 require_once 'libraries/Theme.class.php';
 require_once 'libraries/Config.class.php';
 require_once 'libraries/php-gettext/gettext.inc';
 require_once 'libraries/config.default.php';
+require_once 'libraries/sanitizing.lib.php';
 require_once 'libraries/Error_Handler.class.php';
 
 /**
@@ -276,7 +278,7 @@ class PMA_AuthenticationSignon_Test extends PHPUnit_Framework_TestCase
         $this->object->authFails();
 
         $this->assertEquals(
-            'Access denied',
+            'Access denied!',
             $_SESSION['PMA_single_signon_error_message']
         );
 

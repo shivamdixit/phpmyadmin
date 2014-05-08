@@ -52,6 +52,7 @@ class PMA_Relation_Cleanup_Test extends PHPUnit_Framework_TestCase
         $GLOBALS['cfg']['Server']['users'] = 'users';
         $GLOBALS['cfg']['Server']['usergroups'] = 'usergroups';
         $GLOBALS['cfg']['Server']['navigationhiding'] = 'navigationhiding';
+        $GLOBALS['cfg']['Server']['savedsearches'] = 'savedsearches';
 
         $this->redefineRelation();
     }
@@ -72,6 +73,7 @@ class PMA_Relation_Cleanup_Test extends PHPUnit_Framework_TestCase
      * Test for PMA_relationsCleanupColumn
      *
      * @return void
+     * @group medium
      */
     public function testPMARelationsCleanupColumn()
     {
@@ -394,7 +396,7 @@ class DBI_PMA_Relation_Cleanup extends PMA_DatabaseInterface
     /**
      * runs a query
      *
-     * @param string $sql                 SQL query to execte
+     * @param string $sql                 SQL query to execute
      * @param mixed  $link                optional database link to use
      * @param int    $options             optional query options
      * @param bool   $cache_affected_rows whether to cache affected rows

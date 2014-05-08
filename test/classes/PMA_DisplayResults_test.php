@@ -89,6 +89,7 @@ class PMA_DisplayResults_Test extends PHPUnit_Framework_TestCase
      * @return void
      *
      * @dataProvider providerForTestSetDisplayModeCase1
+     * @group medium
      */
     public function testSetDisplayModeCase1($the_disp_mode, $the_total, $output)
     {
@@ -723,13 +724,21 @@ class PMA_DisplayResults_Test extends PHPUnit_Framework_TestCase
     public function dataProviderForGetSortParams()
     {
         return array(
-            array('', array('', '', '')),
+            array('', array(array(''), array(''), array(''))),
             array(
                 '`a_sales`.`customer_id` ASC',
                 array(
-                    '`a_sales`.`customer_id` ASC',
-                    '`a_sales`.`customer_id`',
-                    'ASC'
+                    array('`a_sales`.`customer_id` ASC'),
+                    array('`a_sales`.`customer_id`'),
+                    array('ASC')
+                )
+            ),
+            array(
+                '`a_sales`.`customer_id` ASC, `b_sales`.`customer_id` DESC',
+                array(
+                    array('`a_sales`.`customer_id` ASC', '`b_sales`.`customer_id` DESC'),
+                    array('`a_sales`.`customer_id`', '`b_sales`.`customer_id`'),
+                    array('ASC', 'DESC')
                 )
             ),
         );
@@ -1401,146 +1410,6 @@ class PMA_DisplayResults_Test extends PHPUnit_Framework_TestCase
                     $dir_letter, $edit_url, $copy_url, $edit_anchor_class,
                     $edit_str, $copy_str, $del_str, $js_conf
                 )
-            )
-        );
-    }
-
-
-    /**
-     * Data provider for testIsNeedToSyntaxHighlight
-     *
-     * @return array parameters and output
-     */
-    public function dataProviderForTestIsNeedToSyntaxHighlight()
-    {
-        return array(
-            array(
-                'information_schema',
-                'processlist',
-                array(
-                    'information_schema' => array(
-                        'processlist' => array(
-                            'info' => array(
-                                'libraries/plugins/transformations/Text_Plain_'
-                                . 'Formatted.class.php',
-                                'Text_Plain_Formatted',
-                                'Text_Plain'
-                            )
-                        )
-                    )
-                ),
-                'info',
-                true
-            ),
-            array(
-                'incorrect_database',
-                'processlist',
-                array(
-                    'information_schema' => array(
-                        'processlist' => array(
-                            'info' => array(
-                                'libraries/plugins/transformations/Text_Plain_'
-                                . 'Formatted.class.php',
-                                'Text_Plain_Formatted',
-                                'Text_Plain'
-                            )
-                        )
-                    )
-                ),
-                'info',
-                false
-            )
-        );
-    }
-
-
-    /**
-     * Test _isNeedToSyntaxHighlight
-     *
-     * @param string  $db     the database name
-     * @param string  $table  the table name
-     * @param array   $data   predefined data of columns need to syntax highlighted
-     * @param string  $field  the field name
-     * @param boolean $output output of _isNeedToSyntaxHighlight
-     *
-     * @return void
-     *
-     * @dataProvider dataProviderForTestIsNeedToSyntaxHighlight
-     */
-    public function testIsNeedToSyntaxHighlight($db, $table, $data, $field,  $output)
-    {
-        $this->object->__set('db', $db);
-        $this->object->__set('table', $table);
-        $this->object->__set('syntax_highlighting_column_info', $data);
-
-        $this->assertEquals(
-            $output,
-            $this->_callPrivateFunction(
-                '_isNeedToSyntaxHighlight',
-                array($field)
-            )
-        );
-    }
-
-
-    /**
-     * Data provider for testIsFieldNeedToLink
-     *
-     * @return array parameters and output
-     */
-    public function dataProviderForTestIsFieldNeedToLink()
-    {
-        return array(
-            array(
-                'mysql',
-                'proc',
-                'db',
-                true
-            ),
-            array(
-                'incorrect_database',
-                'processlist',
-                'info',
-                false
-            )
-        );
-    }
-
-
-    /**
-     * Test _isFieldNeedToLink
-     *
-     * @param string  $db     the database name
-     * @param string  $table  the table name
-     * @param string  $field  the field name
-     * @param boolean $output output of _isFieldNeedToLink
-     *
-     * @return void
-     *
-     * @dataProvider dataProviderForTestIsFieldNeedToLink
-     */
-    public function testIsFieldNeedToLink($db, $table, $field,  $output)
-    {
-        $GLOBALS['special_schema_links'] = array(
-            'mysql' => array(
-                'proc' => array(
-                    'db' => array(
-                        'link_param' => 'db',
-                        'default_page' => 'index.php'
-                    )
-
-                )
-            )
-        );
-
-        $this->object->__set('db', $db);
-        $this->object->__set('table', $table);
-
-        $this->assertEquals(
-            $output,
-            $this->_callPrivateFunction(
-                '_isFieldNeedToLink',
-                array($field)
             )
         );
     }

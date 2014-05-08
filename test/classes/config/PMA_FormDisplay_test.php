@@ -59,6 +59,7 @@ class PMA_FormDisplay_Test extends PHPUnit_Framework_TestCase
      * Test for FormDisplay::__constructor
      *
      * @return void
+     * @group medium
      */
     public function testFormDisplayContructor()
     {
@@ -72,6 +73,7 @@ class PMA_FormDisplay_Test extends PHPUnit_Framework_TestCase
      * Test for FormDisplay::registerForm
      *
      * @return void
+     * @group medium
      */
     public function testRegisterForm()
     {
@@ -117,6 +119,7 @@ class PMA_FormDisplay_Test extends PHPUnit_Framework_TestCase
      * Test for FormDisplay::process
      *
      * @return void
+     * @group medium
      */
     public function testProcess()
     {
@@ -334,8 +337,7 @@ class PMA_FormDisplay_Test extends PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             "./url.php?url=http%3A%2F%2Fdocs.phpmyadmin.net%2Fen%2Flatest%2F" .
-            "config.html%23cfg_Servers_3_test_2_&amp;server=0&amp;lang=en&amp" .
-            ";token=token",
+            "config.html%23cfg_Servers_3_test_2_",
             $this->object->getDocLink("Servers/3/test/2/")
         );
 
@@ -502,24 +504,6 @@ class PMA_FormDisplay_Test extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             $comment,
-            $opts['comment']
-        );
-
-        $this->assertTrue(
-            $opts['comment_warning']
-        );
-
-        // SQLValidate
-
-        $GLOBALS['cfg']['SQLValidator']['use'] = false;
-
-        $method->invokeArgs(
-            $this->object,
-            array('SQLQuery/Validate', &$opts)
-        );
-
-        $this->assertEquals(
-            "SQL Validator is disabled",
             $opts['comment']
         );
 
