@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: phpMyAdmin 4.3.0-dev\n"
 "Report-Msgid-Bugs-To: phpmyadmin-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2014-05-28 08:21-0400\n"
-"PO-Revision-Date: 2014-05-31 17:13+0200\n"
+"PO-Revision-Date: 2014-05-31 20:28+0200\n"
 "Last-Translator: கணேஷ் குமார் <GANESHTHEONE@gmail.com>\n"
 "Language-Team: Tamil <https://l10n.cihar.com/projects/phpmyadmin/master/ta/>"
 "\n"
@@ -128,7 +128,7 @@ msgstr "இயல்நிலை"
 #: libraries/schema/Pdf_Relation_Schema.class.php:1388
 #: libraries/tbl_printview.lib.php:478
 msgid "Links to"
-msgstr "இணைப்பு"
+msgstr "இணைப்புகள்"
 
 #: db_datadict.php:159 db_printview.php:53
 #: libraries/config/messages.inc.php:132 libraries/config/messages.inc.php:148
@@ -204,26 +204,26 @@ msgstr "ஆம்"
 
 #: db_export.php:29
 msgid "View dump (schema) of database"
-msgstr "தரவுத்தளத்தின் திட்ட வடிவத்தைப் பார்"
+msgstr "தரவுத்தளத்தின் குவியலமைப்பை (திட்ட வடிவத்தைப்) பார்க்க"
 
 #: db_export.php:33 db_printview.php:41 db_structure.php:84 db_tracking.php:51
 #: export.php:322 libraries/DBQbe.class.php:312
 msgid "No tables found in database."
-msgstr "அட்டவணைகள் எதுவும் தரவுத்தளத்தில் காணப்படவில்லை."
+msgstr "தரவுத்தளத்தில் அட்டவணைகள் எதுவும் காணப்படவில்லை."
 
 #: db_export.php:41 libraries/DbSearch.class.php:445
 #: libraries/display_export.lib.php:42
 msgid "Select All"
-msgstr "அனைத்தையும் தெரிவுசெய்"
+msgstr "அனைத்தையும் தெரிவுசெய்க"
 
 #: db_export.php:47 libraries/DbSearch.class.php:449
 #: libraries/display_export.lib.php:48
 msgid "Unselect All"
-msgstr "அனைத்து தெரிவுகளையும் நீக்கு"
+msgstr "அனைத்தையும் தெரிவுநீக்கு"
 
 #: db_operations.php:45 tbl_create.php:21
 msgid "The database name is empty!"
-msgstr "தரவுத்தளப் பெயர் வெறுமையாக உள்ளது!"
+msgstr "தரவுத்தளத்தின் பெயர் வெறுமையாக உள்ளது!"
 
 #: db_operations.php:130
 #, php-format
@@ -241,8 +241,8 @@ msgid ""
 "The phpMyAdmin configuration storage has been deactivated. To find out why "
 "click %shere%s."
 msgstr ""
-"PhpMyAdmin கட்டமைப்பு சேமிப்பகம் முடக்க செய்யப்பட்டுள்ளது. ஏன் எனக் கண்டுபிடிக்க %sஇங்கே%s "
-"கிளிக் செய்யவும்."
+"PhpMyAdmin கட்டமைப்பு சேமிப்பகம் முடக்கப்பட்டுள்ளது. ஏனென்று அறிய %sஇங்கே%s "
+"சொடுக்குக."
 
 #: db_printview.php:47 db_tracking.php:81 db_tracking.php:210
 #: libraries/Menu.class.php:235 libraries/config/messages.inc.php:769
@@ -264,7 +264,7 @@ msgstr "அட்டவணை"
 #: libraries/structure.lib.php:1800 libraries/structure.lib.php:1991
 #: libraries/tbl_printview.lib.php:194
 msgid "Rows"
-msgstr "வரிசைகள்"
+msgstr "நிரைவரிசைகள்"
 
 #: db_printview.php:51 libraries/structure.lib.php:836
 #: libraries/tbl_indexes.lib.php:316
@@ -274,7 +274,7 @@ msgstr "அளவு"
 #: db_printview.php:98 libraries/plugins/export/ExportSql.class.php:1161
 #: libraries/structure.lib.php:777
 msgid "in use"
-msgstr "பயன்பாட்டில்"
+msgstr "பயன்பாட்டில் உள்ளது"
 
 #: db_printview.php:119 libraries/plugins/export/ExportSql.class.php:1087
 #: libraries/schema/Pdf_Relation_Schema.class.php:1338
@@ -284,12 +284,12 @@ msgstr "உருவாக்கம்:"
 #: db_printview.php:128 libraries/plugins/export/ExportSql.class.php:1100
 #: libraries/schema/Pdf_Relation_Schema.class.php:1343
 msgid "Last update:"
-msgstr "இறுதி இற்றைப்படுத்தல்:"
+msgstr "கடைசி நிகழ்நிலையாக்கம்:"
 
 #: db_printview.php:137 libraries/plugins/export/ExportSql.class.php:1113
 #: libraries/schema/Pdf_Relation_Schema.class.php:1348
 msgid "Last check:"
-msgstr "கடைசி சோதனை:"
+msgstr "கடைசி சரிபார்ப்பு:"
 
 #: db_printview.php:151 libraries/structure.lib.php:168
 #, php-format
@@ -305,14 +305,14 @@ msgstr "காட்சிப்படுத்த நீங்கள் கு�
 #: db_qbe.php:124
 #, php-format
 msgid "Switch to %svisual builder%s"
-msgstr "%s காட்சி கட்டுனர் இற்கு %s மாற்றவும்"
+msgstr "%sகாண்முறை வரைவிக்கு%s மாறுக"
 
 #: db_search.php:30 libraries/plugins/AuthenticationPlugin.class.php:64
 #: libraries/plugins/auth/AuthenticationConfig.class.php:85
 #: libraries/plugins/auth/AuthenticationConfig.class.php:100
 #: libraries/plugins/auth/AuthenticationHttp.class.php:69
 msgid "Access denied!"
-msgstr "அனுமதி நிராகரிக்கப்பட்டுள்ளது!"
+msgstr "அணுகல் மறுக்கப்பட்டது!"
 
 #: db_tracking.php:75
 msgid "Tracked tables"
@@ -372,7 +372,7 @@ msgstr "காண்பி"
 
 #: db_tracking.php:99 js/messages.php:40
 msgid "Delete tracking data for this table"
-msgstr "இந்த அட்டவணைக்கான கண்காணிப்பு தரவை நீக்கு"
+msgstr "இந்த அட்டவணைக்கான கண்காணிப்பு தரவை நீக்குக"
 
 #: db_tracking.php:103 libraries/Index.class.php:627
 #: libraries/Util.class.php:3358 libraries/Util.class.php:3359
@@ -390,7 +390,7 @@ msgstr "செயற்படு"
 #: db_tracking.php:122 libraries/tbl_tracking.lib.php:212
 #: libraries/tbl_tracking.lib.php:314
 msgid "not active"
-msgstr "செயற்பாடற்ற"
+msgstr "செயல்பாடற்ற"
 
 #: db_tracking.php:143
 msgid "Versions"
@@ -412,11 +412,11 @@ msgstr "கண்காணிக்கபடாத அட்டவணைகள�
 
 #: db_tracking.php:224 libraries/structure.lib.php:1606
 msgid "Track table"
-msgstr "அட்டவணைத் தடம்"
+msgstr "அட்டவணையை கண்காணி"
 
 #: db_tracking.php:251
 msgid "Database Log"
-msgstr "தரவுத்தளப்பதிகை"
+msgstr "தரவுத்தளப் பதிகை"
 
 #: error_report.php:31
 msgid ""
@@ -428,24 +428,25 @@ msgstr ""
 
 #: error_report.php:35
 msgid "Thank you for submitting this report."
-msgstr "இந்த அறிக்கை சமர்ப்பிக்கும் நன்றி."
+msgstr "இந்த அறிக்கை அளித்தமைக்கு நன்றி."
 
 #: error_report.php:39
 msgid ""
 "An error has been detected and an error report has been generated but failed "
 "to be sent."
 msgstr ""
-"ஒரு பிழை கண்டறியப்பட்டது மற்றும் பிழை அறிக்கை உருவாக்கப்பட்டுள்ளது ஆனால் அனுப்பப்பட "
-"வேண்டும் தோல்வியடைந்தது."
+"ஒரு பிழை கண்டறியப்பட்டது மேலும் ஒரு பிழையறிக்கை உருவாக்கப்பட்டுள்ளது ஆனால் "
+"தோல்வியடைந்தது எனவே பின்னர் அனுப்ப வேண்டும்."
 
 #: error_report.php:44
 msgid "If you experience any problems please submit a bug report manually."
 msgstr ""
-"நீங்கள் ஏதேனும் பிரச்சினைகளை எதிர்கொண்டால் கைமுறையாக ஒரு பிழை அறிக்கையை சமர்ப்பிக்கவும்."
+"நீங்கள் ஏதேனும் சிக்கல்களை எதிர்கொண்டால் தயவுசெய்து கைமுறையாக ஒரு பிழை "
+"அறிக்கையை அளிக்கவும்."
 
 #: error_report.php:48
 msgid "You may want to refresh the page."
-msgstr "நீங்கள் பக்கம் புதுப்பிக்க வேண்டும்."
+msgstr "நீங்கள் இப்பக்கத்தை மீளேற்ற வேண்டியிருக்கலாம்."
 
 #: export.php:179
 msgid "Bad type!"
@@ -457,12 +458,12 @@ msgstr "ஒவ்வாத பண்புகூறுகள்!"
 
 #: file_echo.php:22
 msgid "Invalid export type"
-msgstr "தகா சுட்டு வகை"
+msgstr "தகா தரவேற்ற சுட்டுவகை"
 
 #: gis_data_editor.php:113
 #, php-format
 msgid "Value for the column \"%s\""
-msgstr "\"%s\" நெடுவரிசையின் மதிப்பு"
+msgstr "\"%s\" நிரல்வரிசையின் மதிப்பு"
 
 #: gis_data_editor.php:141 libraries/tbl_gis_visualization.lib.php:163
 msgid "Use OpenStreetMaps as Base Layer"
@@ -485,12 +486,12 @@ msgstr "புள்ளி:"
 #: gis_data_editor.php:209 gis_data_editor.php:236 gis_data_editor.php:292
 #: gis_data_editor.php:365 js/messages.php:312
 msgid "X"
-msgstr "X"
+msgstr "கு"
 
 #: gis_data_editor.php:212 gis_data_editor.php:240 gis_data_editor.php:296
 #: gis_data_editor.php:371 js/messages.php:313
 msgid "Y"
-msgstr "Y"
+msgstr "நெ"
 
 #: gis_data_editor.php:234 gis_data_editor.php:290 gis_data_editor.php:363
 #: js/messages.php:315
@@ -515,7 +516,7 @@ msgstr "வெளிப்புற வளையம்:"
 #: gis_data_editor.php:269 gis_data_editor.php:346
 #, php-format
 msgid "Inner ring %d:"
-msgstr "உள்ப்புற வளையம் %d:"
+msgstr "உட்புற வளையம் %d:"
 
 #: gis_data_editor.php:306
 msgid "Add a linestring"
@@ -523,7 +524,7 @@ msgstr "வரி சரம் சேர்க்க"
 
 #: gis_data_editor.php:307 gis_data_editor.php:386 js/messages.php:322
 msgid "Add an inner ring"
-msgstr "உள்ப்புற வளையத்தை சேர்"
+msgstr "உட்புற வளையத்தை சேர்"
 
 #: gis_data_editor.php:328
 #, php-format
