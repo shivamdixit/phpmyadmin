@@ -274,11 +274,22 @@ AJAX.registerOnload('tbl_change.js', function () {
             if (! is_confirmed) {
                 return false;
             } else {
-                unsavedForm = false;
+                $unsavedForm = false;
                 return true;
             }
         }
     });
+
+    /**
+     * If user closes or refresh the page without
+     * saving the form, a prompt will be displayed
+     */
+    $(window).on('beforeunload', function(){
+
+    	if ($unsavedForm) {
+    		return "You have unsaved changes.";
+  		}
+	});
 
     /**
      * If any form elements are changed, set $unsavedForm to true
