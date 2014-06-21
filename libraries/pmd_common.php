@@ -234,26 +234,29 @@ function PMA_getScriptTabs()
 }
 
 /**
- * Returns table position
+ * Returns table positions of a given pdf page
  *
- * @return array table positions and sizes
+ * @param int $pg pdf page id
+ *
+ * @return array of table positions
  */
-function PMA_getTabPos()
+function PMA_getTablePositions($pg)
 {
     $cfgRelation = PMA_getRelationsParam();
-
-    if (! $cfgRelation['designerwork']) {
+    if (! $cfgRelation['pdfwork']) {
         return null;
     }
 
     $query = "
-         SELECT CONCAT_WS('.', `db_name`, `table_name`) AS `name`,
-                `x` AS `X`,
-                `y` AS `Y`,
-                `v` AS `V`,
-                `h` AS `H`
-           FROM " . PMA_Util::backquote($cfgRelation['db'])
-        . "." . PMA_Util::backquote($cfgRelation['designer_coords']);
+        SELECT CONCAT_WS('.', `db_name`, `table_name`) AS `name`,
+            `x` AS `X`,
+            `y` AS `Y`,
+            1 AS `V`,
+            1 AS `H`
+        FROM " . PMA_Util::backquote($cfgRelation['db'])
+            . "." . PMA_Util::backquote($cfgRelation['table_coords']) . "
+        WHERE pdf_page_number = " . $pg;
+
     $tab_pos = $GLOBALS['dbi']->fetchResult(
         $query,
         'name',
@@ -261,8 +264,167 @@ function PMA_getTabPos()
         $GLOBALS['controllink'],
         PMA_DatabaseInterface::QUERY_STORE
     );
-    return count($tab_pos) ? $tab_pos : null;
+    return $tab_pos;
 }
+
+/**
+ * Returns page name of a given pdf page
+ *
+ * @param int $pg pdf page id
+ *
+ * @return String table name
+ */
+function PMA_getPageName($pg)
+{
+    $cfgRelation = PMA_getRelationsParam();
+    if (! $cfgRelation['pdfwork']) {
+        return null;
+    }
+
+    $query = "SELECT `page_descr`"
+        . " FROM " . PMA_Util::backquote($cfgRelation['db'])
+        . "." . PMA_Util::backquote($cfgRelation['pdf_pages'])
+        . " WHERE " . PMA_Util::backquote('page_nr'). " = " . $pg;
+    $page_name = $GLOBALS['dbi']->fetchResult(
+        $query,
+        null,
+        null,
+        $GLOBALS['controllink'],
+        PMA_DatabaseInterface::QUERY_STORE
+    );
+    return count($page_name) ? $page_name[0] : __("*Untitled");
+}
+
+/**
+ * Deletes a given pdf page and its corresponding coordinates
+ *
+ * @param int $pg page id
+ *
+ * @return boolean success/failure
+ */
+function PMA_deletePage($pg)
+{
+    $cfgRelation = PMA_getRelationsParam();
+    if (! $cfgRelation['pdfwork']) {
+        return null;
+    }
+
+    $query = "DELETE FROM " . PMA_Util::backquote($cfgRelation['db'])
+             . "." . PMA_Util::backquote($cfgRelation['table_coords'])
+             . " WHERE " . PMA_Util::backquote('pdf_page_number'). " = " . $pg;
+    $success = PMA_queryAsControlUser(
+        $query, true, PMA_DatabaseInterface::QUERY_STORE
+    );
+
+    if ($success) {
+        $query = "DELETE FROM " . PMA_Util::backquote($cfgRelation['db'])
+                 . "." . PMA_Util::backquote($cfgRelation['pdf_pages'])
+                 . " WHERE ". PMA_Util::backquote('page_nr'). " = " . $pg;
+        $success = PMA_queryAsControlUser(
+            $query, true, PMA_DatabaseInterface::QUERY_STORE
+        );
+    }
+
+    return $success;
+}
+
+/**
+ * Returns the id of the first pdf page of the database
+ *
+ * @param string $db database
+ *
+ * @return int id of the first pdf page, default is -1
+ */
+function PMA_getFirstPage($db)
+{
+    $cfgRelation = PMA_getRelationsParam();
+    if (! $cfgRelation['pdfwork']) {
+        return null;
+    }
+
+    $query = "SELECT MIN(`page_nr`)"
+        . " FROM " . PMA_Util::backquote($cfgRelation['db'])
+        . "." . PMA_Util::backquote($cfgRelation['pdf_pages'])
+        . " WHERE `db_name` = '" . $db . "'";
+
+    $min_page_no = $GLOBALS['dbi']->fetchResult(
+        $query,
+        null,
+        null,
+        $GLOBALS['controllink'],
+        PMA_DatabaseInterface::QUERY_STORE
+    );
+    return count($min_page_no[0]) ? $min_page_no[0] : -1;
+}
+
+/**
+ * Creates a new page and returns its auto-incrementing id
+ *
+ * @param string $pageName name of the page
+ *
+ * @return int|null
+ */
+function PMA_createNewPage($pageName)
+{
+    $cfgRelation = PMA_getRelationsParam();
+    if ($cfgRelation['pdfwork']) {
+        $_POST['newpage'] = $pageName;
+        // temporarlily using schema code for creating a page
+        include_once 'libraries/schema/User_Schema.class.php';
+        $user_schema = new PMA_User_Schema();
+        $user_schema->setAction("createpage");
+        $user_schema->processUserChoice();
+        return $user_schema->pageNumber;
+    }
+    return null;
+}
+
+/**
+ * Saves positions of table(s) of a given pdf page
+ *
+ * @param int $pg pdf page id
+ *
+ * @return boolean success/failure
+ */
+function PMA_saveTablePositions($pg)
+{
+    $cfgRelation = PMA_getRelationsParam();
+    if (! $cfgRelation['pdfwork']) {
+        return null;
+    }
+
+    $queury =  "DELETE FROM " . PMA_Util::backquote($GLOBALS['cfgRelation']['db'])
+        . "." . PMA_Util::backquote($GLOBALS['cfgRelation']['table_coords'])
+        . " WHERE `db_name` = '" . PMA_Util::sqlAddSlashes($_REQUEST['db']) . "'"
+        . " AND `pdf_page_number` = '" . PMA_Util::sqlAddSlashes($pg) . "'";
+
+    $res = PMA_queryAsControlUser($queury, true, PMA_DatabaseInterface::QUERY_STORE);
+
+    if ($res) {
+        foreach ($_REQUEST['t_h'] as $key => $value) {
+            list($DB, $TAB) = explode(".", $key);
+            if ($value) {
+                $queury = "INSERT INTO "
+                    . PMA_Util::backquote($GLOBALS['cfgRelation']['db']) . "."
+                    . PMA_Util::backquote($GLOBALS['cfgRelation']['table_coords'])
+                    . " (`db_name`, `table_name`, `pdf_page_number`, `x`, `y`)"
+                    . " VALUES ("
+                    . "'" . PMA_Util::sqlAddSlashes($DB) . "', "
+                    . "'" . PMA_Util::sqlAddSlashes($TAB) . "', "
+                    . "'" . PMA_Util::sqlAddSlashes($pg) . "', "
+                    . "'" . PMA_Util::sqlAddSlashes($_REQUEST['t_x'][$key]) . "', "
+                    . "'" . PMA_Util::sqlAddSlashes($_REQUEST['t_y'][$key]) . "')";
+
+                $res = PMA_queryAsControlUser(
+                    $queury,  true, PMA_DatabaseInterface::QUERY_STORE
+                );
+            }
+        }
+    }
+
+    return $res;
+}
+
 
 /**
  * Prepares XML output for js/pmd/ajax.js to display a message

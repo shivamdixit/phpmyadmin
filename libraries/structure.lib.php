@@ -180,10 +180,12 @@ function PMA_getHtmlBodyForTableSummary($num_tables, $server_slave_status,
     $row_count_sum = PMA_Util::formatNumber($sum_entries, 0);
     // If a table shows approximate rows count, display update-all-real-count anchor.
     if (isset($approx_rows)) {
-        $row_sum_url['ajax_request'] = true;
-        $row_sum_url['db'] = $GLOBALS['db'];
-        $row_sum_url['real_row_count'] = 'true';
-        $row_sum_url['real_row_count_all'] = 'true';
+        $row_sum_url = array(
+            'ajax_request'       => true,
+            'db'                 => $GLOBALS['db'],
+            'real_row_count'     => 'true',
+            'real_row_count_all' => 'true'
+        );
     }
     $cell_text = ($approx_rows)
         ? '<a href="db_structure.php' . PMA_URL_getCommon($row_sum_url)
@@ -339,6 +341,8 @@ function PMA_getHtmlForCheckAllTables($pmaThemeImage, $text_dir,
                 . __('Add columns to central list') . '</option>' . "\n";
             $html_output .= '<option value="delete_unique_columns_central_list" >'
                 . __('Remove columns from central list') . '</option>' . "\n";
+            $html_output .= '<option value="make_consistent_with_central_list" >'
+                . __('Make consistent with central list') . '</option>' . "\n";
         }
     }
     $html_output .= '</select>'
@@ -702,10 +706,12 @@ function PMA_getHtmlForNotNullEngineViewTable($table_is_view, $current_table,
     $row_count = $row_count_pre
         . PMA_Util::formatNumber($current_table['TABLE_ROWS'], 0);
     // URL parameters to fetch the real row count.
-    $real_count_url['ajax_request'] = true;
-    $real_count_url['db'] = $GLOBALS['db'];
-    $real_count_url['table'] = $current_table['TABLE_NAME'];
-    $real_count_url['real_row_count'] = 'true';
+    $real_count_url = array(
+        'ajax_request'   => true,
+        'db'             => $GLOBALS['db'],
+        'table'          => $current_table['TABLE_NAME'],
+        'real_row_count' => 'true'
+    );
     // Content to be appended into 'tbl_rows' cell.
     // If row count is approximate, display it as an anchor to get real count.
     $cell_text = (! empty($row_count_pre))
@@ -1476,12 +1482,12 @@ function PMA_getHtmlForCheckAllTableColumn($pmaThemeImage, $text_dir,
         if ($GLOBALS['cfgRelation']['central_columnswork']) {
             $html_output .= PMA_Util::getButtonOrImage(
                 'submit_mult', 'mult_submit', 'submit_mult_central_columns_add',
-                __('Add to central columns'), 'centralColumns_add.png', 
+                __('Add to central columns'), 'centralColumns_add.png',
                 'add_to_central_columns'
             );
             $html_output .= PMA_Util::getButtonOrImage(
                 'submit_mult', 'mult_submit', 'submit_mult_central_columns_remove',
-                __('Remove from central columns'), 'centralColumns_delete.png', 
+                __('Remove from central columns'), 'centralColumns_delete.png',
                 'remove_from_central_columns'
             );
         }
@@ -2005,17 +2011,19 @@ function PMA_getHtmlForDistinctValueAction($url_query, $row, $titles)
 /**
  * Get HTML snippet for Actions in table structure
  *
- * @param string  $type                      column type
- * @param string  $tbl_storage_engine        table storage engine
- * @param boolean $primary                   primary if set, false otherwise
- * @param string  $field_name                column name
- * @param string  $url_query                 url query
- * @param array   $titles                    titles array
- * @param array   $row                       current row
- * @param string  $rownum                    row number
- * @param array   $hidden_titles             hidden titles
- * @param array   $columns_with_unique_index columns with unique index
- * @param boolean $isInCentralColumns        set if column in central columns list
+ * @param string         $type                      column type
+ * @param string         $tbl_storage_engine        table storage engine
+ * @param object|boolean $primary                   primary if set,
+ *                                                  false otherwise
+ * @param string         $field_name                column name
+ * @param string         $url_query                 url query
+ * @param array          $titles                    titles array
+ * @param array          $row                       current row
+ * @param string         $rownum                    row number
+ * @param array          $hidden_titles             hidden titles
+ * @param array          $columns_with_unique_index columns with unique index
+ * @param boolean        $isInCentralColumns        set if column in central
+ *                                                  columns list
  *
  * @return string $html_output;
  */
@@ -2072,7 +2080,7 @@ function PMA_getHtmlForActionsInTableStructure($type, $tbl_storage_engine,
     if ($GLOBALS['cfgRelation']['central_columnswork']) {
         $html_output .= '<li class="browse nowrap">';
         if ($isInCentralColumns) {
-            $html_output .= 
+            $html_output .=
                 '<a href="#" onclick=$("input:checkbox").removeAttr("checked");'
                 . '$("#checkbox_row_' . $rownum . '").attr("checked","checked");'
                 . '$("button[value=remove_from_central_columns]").click();>'
@@ -2082,12 +2090,12 @@ function PMA_getHtmlForActionsInTableStructure($type, $tbl_storage_engine,
             )
             . '</a>';
         } else {
-            $html_output .= 
+            $html_output .=
                 '<a href="#" onclick=$("input:checkbox").removeAttr("checked");'
                 . '$("#checkbox_row_' . $rownum . '").attr("checked","checked");'
                 . '$("button[value=add_to_central_columns]").click();>'
             . PMA_Util::getIcon(
-                'centralColumns_add.png', 
+                'centralColumns_add.png',
                 __('Add to central columns')
             )
             . '</a>';
@@ -2344,6 +2352,7 @@ function PMA_displayHtmlForColumnChange($db, $table, $selected, $action)
     /**
      * @todo optimize in case of multiple fields to modify
      */
+    $fields_meta = array();
     for ($i = 0; $i < $selected_cnt; $i++) {
         $fields_meta[] = $GLOBALS['dbi']->getColumns(
             $db, $table, $selected[$i], true
@@ -2474,7 +2483,7 @@ function PMA_updateColumns($db, $table)
 
     $response = PMA_Response::getInstance();
 
-    if (count($changes) > 0) {
+    if (count($changes) > 0 || isset($_REQUEST['preview_sql'])) {
         // Builds the primary keys statements and updates the table
         $key_query = '';
         /**
@@ -2499,6 +2508,12 @@ function PMA_updateColumns($db, $table)
         $sql_query = 'ALTER TABLE ' . PMA_Util::backquote($table) . ' ';
         $sql_query .= implode(', ', $changes) . $key_query;
         $sql_query .= ';';
+
+        // If there is a request for SQL previewing.
+        if (isset($_REQUEST['preview_sql'])) {
+            PMA_previewSQL(count($changes) > 0 ? $sql_query : '');
+        }
+
         $result    = $GLOBALS['dbi']->tryQuery($sql_query);
 
         if ($result !== false) {
@@ -2811,9 +2826,8 @@ function PMA_checkFavoriteTable($db, $current_table)
 function PMA_getHtmlForFavoriteAnchor($db, $current_table, $titles)
 {
     $html_output  = '<a ';
-    $html_output .= 'id="' . preg_replace(
-        '/\s+/', '', $current_table['TABLE_NAME']
-    ) . '_favorite_anchor" ';
+    $html_output .= 'id="' . md5($current_table['TABLE_NAME'])
+        . '_favorite_anchor" ';
     $html_output .= 'class="ajax favorite_table_anchor';
 
     // Check if current table is already in favorite list.
@@ -2821,13 +2835,15 @@ function PMA_getHtmlForFavoriteAnchor($db, $current_table, $titles)
     $fav_params = array('db' => $db,
         'ajax_request' => true,
         'favorite_table' => $current_table['TABLE_NAME'],
-        (($already_favorite?'remove':'add') . '_favorite') => true);
+        (($already_favorite?'remove':'add') . '_favorite') => true
+    );
     $fav_url = 'db_structure.php' . PMA_URL_getCommon($fav_params);
     $html_output .= '" ';
     $html_output .= 'href="' . $fav_url
         . '" title="' . ($already_favorite ? __("Remove from Favorites")
         : __("Add to Favorites"))
-        . '" data-favtargets="' . $db . "." . $current_table['TABLE_NAME']
+        . '" data-favtargets="'
+        . md5($db . "." . $current_table['TABLE_NAME'])
         . '" >'
         . (!$already_favorite ? $titles['NoFavorite']
         : $titles['Favorite']) . '</a>';

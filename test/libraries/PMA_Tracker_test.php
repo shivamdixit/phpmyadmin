@@ -158,7 +158,7 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
     {
         $attr = new \ReflectionProperty('PMA_Tracker', 'enabled');
         $attr->setAccessible(true);
-        $attr->setValue(null, false);
+        $attr->setValue(false);
 
         $this->assertFalse(
             PMA_Tracker::isActive()
@@ -231,12 +231,11 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
     {
         $attr = new \ReflectionProperty('PMA_Tracker', 'enabled');
         $attr->setAccessible(true);
-        $attr->setValue(null, false);
-
+        $attr->setValue(false);
 
         $reflection = new \ReflectionProperty('PMA_Tracker', 'pma_table');
         $reflection->setAccessible(true);
-        $reflection->setValue(null, 'pma_table_tracking');
+        $reflection->setValue('pma_table_tracking');
 
         $this->assertFalse(
             PMA_Tracker::isTracked("", "")
@@ -256,7 +255,7 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
             PMA_Tracker::isTracked("pma_test_db", "pma_test_table")
         );
 
-        $reflection->setValue(null, 'pma_table_tracking');
+        $reflection->setValue('pma_table_tracking');
 
         $this->assertFalse(
             PMA_Tracker::isTracked("pma_test_db", "pma_test_table2")
@@ -316,7 +315,6 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
          * to passing $this->anything()
          */
 
-
         $getColumnsResult = array(
             array(
                 'Field' => 'field1',
@@ -362,7 +360,6 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
                     )"
                 )
             );
-
 
         $date = date('Y-m-d H:i:s');
 
@@ -441,7 +438,7 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
 
         $reflection = new \ReflectionProperty('PMA_Tracker', 'pma_table');
         $reflection->setAccessible(true);
-        $reflection->setValue(null, 'pma_table_tracking');
+        $reflection->setValue('pma_table_tracking');
 
         $dbi->expects($this->exactly(1))
             ->method('query')
@@ -533,7 +530,7 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
     ) {
         $reflection = new \ReflectionProperty('PMA_Tracker', 'pma_table');
         $reflection->setAccessible(true);
-        $reflection->setValue(null, 'pma_table_tracking');
+        $reflection->setValue('pma_table_tracking');
 
         $dbi = $this->getMockBuilder('PMA_DatabaseInterface')
             ->disableOriginalConstructor()
@@ -590,7 +587,7 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
 
         $reflection = new \ReflectionProperty('PMA_Tracker', 'pma_table');
         $reflection->setAccessible(true);
-        $reflection->setValue(null, 'pma_table_tracking');
+        $reflection->setValue('pma_table_tracking');
 
         $this->assertFalse(
             PMA_Tracker::changeTrackingData("", "", "", "", "")
@@ -701,7 +698,7 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
 
         $reflection = new \ReflectionProperty('PMA_Tracker', 'pma_table');
         $reflection->setAccessible(true);
-        $reflection->setValue(null, 'pma_table_tracking');
+        $reflection->setValue('pma_table_tracking');
 
         runkit_constant_redefine("PMA_DRIZZLE", true);
 
@@ -772,7 +769,7 @@ class PMA_Tracker_Test extends PHPUnit_Framework_TestCase
 
         $reflection = new \ReflectionProperty('PMA_Tracker', 'pma_table');
         $reflection->setAccessible(true);
-        $reflection->setValue(null, "`pma_db`.`tracking`");
+        $reflection->setValue("`pma_db`.`tracking`");
 
         $sql_query = " SELECT * FROM `pma_db`.`tracking`" .
             " WHERE `db_name` = 'pma''db' " .

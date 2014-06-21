@@ -43,7 +43,7 @@ $js_messages['strDroppingPrimaryKeyIndex'] = __('Dropping Primary Key/Index');
 $js_messages['strOperationTakesLongTime'] = __('This operation could take a long time. Proceed anyway?');
 $js_messages['strDropUserGroupWarning'] = __('Do you really want to delete user group "%s"?');
 $js_messages['strConfirmDeleteQBESearch'] = __('Do you really want to delete the search "%s"?');
-$js_messages['strConfirmNavigation'] = __('Are you sure you want to navigate away from this page? Press OK to continue or Cancel to stay on the current page.');
+$js_messages['strConfirmNavigation'] = __('You have unsaved changes; are you sure you want to leave this page?');
 
 /* For indexes */
 $js_messages['strFormEmpty'] = __('Missing value in the form!');
@@ -53,6 +53,14 @@ $js_messages['strEnterValidLength'] = __('Please enter a valid length!');
 $js_messages['strAddIndex'] = __('Add Index');
 $js_messages['strEditIndex'] = __('Edit Index');
 $js_messages['strAddToIndex'] = __('Add %s column(s) to index');
+
+/* For Preview SQL*/
+$js_messages['strPreviewSQL'] = __('Preview SQL');
+
+/* For Simulate DML*/
+$js_messages['strSimulateDML'] = __('Simulate query');
+$js_messages['strMatchedRows'] = __('Matched rows:');
+$js_messages['strSQLQuery'] = __('SQL query:');
 
 /* Charts */
 /* l10n: Default label for the y-Axis of Charts */
@@ -275,6 +283,16 @@ $js_messages['strEdit'] = __('Edit');
 $js_messages['strNotValidRowNumber'] = __('%d is not valid row number.');
 $js_messages['strBrowseForeignValues'] = __('Browse foreign values');
 
+/* For Central list of columns */
+$js_messages['pickColumn'] = __('Pick');
+$js_messages['pickColumnTitle'] = __('Column selector');
+$js_messages['searchList'] = __('Search this list');
+$js_messages['strEmptyCentralList'] = __('No columns in the central list. Make sure the Central columns list for database %s has columns that are not present in the current table.');
+$js_messages['seeMore'] = __('See more');
+$js_messages['confirmTitle'] = __('Are you sure?');
+$js_messages['makeConsistentMessage'] = __('This action may change some of the columns definition.<br/>Are you sure you want to continue?');
+$js_messages['strContinue'] = __('Continue');
+
 /* For server_variables.js */
 $js_messages['strSave'] = __('Save');
 
@@ -334,6 +352,14 @@ $js_messages['strLeavingDesigner'] = __(
     'You haven\'t saved the changes in the layout. They will be lost if you'
     . ' don\'t save them. Do you want to continue?'
 );
+$js_messages['strPageName'] = __('Page name');
+$js_messages['strSavePage'] = __('Save page');
+$js_messages['strOpenPage'] = __('Open page');
+$js_messages['strDeletePage'] = __('Delete page');
+$js_messages['strSelectPage'] = __('Please select a page to continue');
+$js_messages['strEnterValidPageName'] = __('Please enter a valid page name');
+$js_messages['strLeavingPage'] = __('Do you want to save the changes to the current page?');
+$js_messages['strSuccessfulPageDelete'] = __('Successfully deleted the page');
 
 /* Visual query builder (js/pmd/move.js) */
 $js_messages['strAddOption'] = __('Add an option for column "%s".');
@@ -412,6 +438,28 @@ $js_messages['strTooManyInputs'] = __(
     . "some of the fields might be ignored, due to PHP's "
     . "max_input_vars configuration."
 );
+
+$js_messages['phpErrorsFound'] = '<div class="error">'
+    . __('Some errors have been detected on the server!')
+    . '<div>'
+    . __('Please look at the bottom of this window.')
+    . '<input id="pma_ignore_errors_popup" type="submit" value="'
+    . __('Ignore')
+    . '" style="float: right; margin: 20px;">'
+    . '<input id="pma_ignore_all_errors_popup" type="submit" value="'
+    . __('Ignore All')
+    . '" style="float: right; margin: 20px;">'
+    . '</div></div>';
+
+$js_messages['phpErrorsBeingSubmitted'] = '<div class="error">'
+    . __('Some errors have been detected on the server!')
+    . '<br/>'
+    . __('As per your settings, they are being submitted currently, please be patient.')
+    . '<br/>'
+    . '<img src="'
+    . ($_SESSION['PMA_Theme']->getImgPath('ajax_clock_small.gif'))
+    . '" width="16" height="16" alt="ajax clock"/>'
+    . '</div>';
 
 echo "var PMA_messages = new Array();\n";
 foreach ($js_messages as $name => $js_message) {

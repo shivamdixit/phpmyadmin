@@ -429,9 +429,9 @@ function PMA_arrayMergeRecursive()
  * this function is protected against deep recursion attack CVE-2006-1549,
  * 1000 seems to be more than enough
  *
- * @param array  &$array             array to walk
- * @param string $function           function to call for every array element
- * @param bool   $apply_to_keys_also whether to call the function for the keys also
+ * @param array    &$array             array to walk
+ * @param callable $function           function to call for every array element
+ * @param bool     $apply_to_keys_also whether to call the function for the keys also
  *
  * @return void
  *
@@ -904,5 +904,52 @@ function PMA_mimeDefaultFunction($buffer)
     $buffer = preg_replace("@((\015\012)|(\015)|(\012))@", '<br />' . "\n", $buffer);
 
     return $buffer;
+}
+
+/**
+ * Displays SQL query before executing.
+ *
+ * @param array|string $query_data Array containing queries or query itself
+ *
+ * @return void
+ */
+function PMA_previewSQL($query_data)
+{
+    $retval = '<div class="preview_sql">';
+    if (empty($query_data)) {
+        $retval .= __('No change');
+    } elseif (is_array($query_data)) {
+        foreach ($query_data as $query) {
+            $retval .= PMA_Util::formatSql($query);
+        }
+    } else {
+        $retval .= PMA_Util::formatSql($query_data);
+    }
+    $retval .= '</div>';
+    $response = PMA_Response::getInstance();
+    $response->addJSON('sql_data', $retval);
+    exit;
+}
+
+/**
+ * recursively check if variable is empty
+ *
+ * @param mixed $value the variable
+ *
+ * @return bool true if empty
+ */
+function PMA_emptyRecursive($value)
+{
+    $empty = true;
+    if (is_array($value)) {
+        PMA_arrayWalkRecursive(
+            $value, function ($item) use (&$empty) {
+                $empty = $empty && empty($item);
+            }
+        );
+    } else {
+        $empty = empty($value);
+    }
+    return $empty;
 }
 ?>

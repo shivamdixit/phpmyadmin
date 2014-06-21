@@ -815,7 +815,8 @@ EOT;
          */
         $html_output .= '<fieldset id="fieldset_search_conditions">'
             . '<legend>' . '<em>' . __('Or') . '</em> '
-            . __('Add search conditions (body of the "where" clause):') . '</legend>';
+            . __('Add search conditions (body of the "where" clause):')
+            . '</legend>';
         $html_output .= PMA_Util::showMySQLDocu('Functions');
         $html_output .= '<input type="text" name="customWhereClause"'
             . ' class="textfield" size="64" />';
@@ -861,7 +862,7 @@ EOT;
      * Other search criteria like data label
      * (for tbl_zoom_select.php)
      *
-     * @param array $dataLabel Label for points in zoom plot
+     * @param string|null $dataLabel Label for points in zoom plot
      *
      * @return string the generated html
      */
@@ -923,8 +924,10 @@ EOT;
             ? $_POST['criteriaColumnOperators'][$search_index] : '');
         $entered_value = (isset($_POST['criteriaValues'])
             ? $_POST['criteriaValues'] : '');
-        $titles['Browse'] = PMA_Util::getIcon(
-            'b_browse.png', __('Browse foreign values')
+        $titles = array(
+            'Browse' => PMA_Util::getIcon(
+                'b_browse.png', __('Browse foreign values')
+            )
         );
         //Gets column's type and collation
         $type = $this->_columnTypes[$column_index];
@@ -1015,6 +1018,7 @@ EOT;
     {
         $odd_row = true;
         $html_output = '';
+        $type = $collation = $func = $value = array();
         /**
          * Get already set search criteria (if any)
          */
@@ -1145,7 +1149,7 @@ EOT;
 
         $html_output .= '<form method="post" action="' . $scriptName . '" '
             . 'name="insertForm" id="' . $formId . '" '
-            . 'class="ajax"' . '>';
+            . 'class="ajax lock-page"' . '>';
 
         $html_output .= PMA_URL_getHiddenInputs($this->_db, $this->_table);
         $html_output .= '<input type="hidden" name="goto" value="' . $goto . '" />';
@@ -1178,8 +1182,8 @@ EOT;
     /**
      * Generates the table search form under table search tab
      *
-     * @param string $goto      Goto URL
-     * @param string $dataLabel Label for points in zoom plot
+     * @param string      $goto      Goto URL
+     * @param string|null $dataLabel Label for points in zoom plot
      *
      * @return string the generated HTML for table search form
      */
@@ -1243,9 +1247,11 @@ EOT;
     public function getZoomResultsForm($goto, $data)
     {
         $html_output = '';
-        $titles['Browse'] = PMA_Util::getIcon(
-            'b_browse.png',
-            __('Browse foreign values')
+        $titles = array(
+            'Browse' => PMA_Util::getIcon(
+                'b_browse.png',
+                __('Browse foreign values')
+            )
         );
         $html_output .= '<form method="post" action="tbl_zoom_select.php"'
             . ' name="displayResultForm" id="zoom_display_form"'

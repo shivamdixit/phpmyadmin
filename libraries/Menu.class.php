@@ -139,7 +139,9 @@ class PMA_Menu
                 . "." . PMA_Util::backquote($GLOBALS['cfg']['Server']['users']);
 
             $sql_query = "SELECT `tab` FROM " . $groupTable
-                . " WHERE `allowed` = 'N' AND `usergroup` = (SELECT usergroup FROM "
+                . " WHERE `allowed` = 'N'"
+                . " AND `tab` LIKE '" . $level . "%'"
+                . " AND `usergroup` = (SELECT usergroup FROM "
                 . $userTable . " WHERE `username` = '"
                 . PMA_Util::sqlAddSlashes($GLOBALS['cfg']['Server']['user']) . "')";
 
@@ -172,7 +174,6 @@ class PMA_Menu
 
         $separator = "<span class='separator item'>&nbsp;»</span>";
         $item = '<a href="%1$s?%2$s" class="item">';
-
 
         if (PMA_Util::showText('TabsMode')) {
             $item .= '%4$s: ';
@@ -471,12 +472,16 @@ class PMA_Menu
             $tabs['tracking']['link'] = 'db_tracking.php';
         }
 
-        if (! $db_is_system_schema && $cfgRelation['designerwork']) {
+        if (! $db_is_system_schema && $cfgRelation['pdfwork']) {
             $tabs['designer']['text'] = __('Designer');
             $tabs['designer']['icon'] = 'b_relations.png';
             $tabs['designer']['link'] = 'pmd_general.php';
         }
-
+        if (! $db_is_system_schema && $cfgRelation['central_columnswork']) {
+            $tabs['central_columns']['text'] = __('Central columns');
+            $tabs['central_columns']['icon'] = 'centralColumns.png';
+            $tabs['central_columns']['link'] = 'db_central_columns.php';
+        }
         return $tabs;
     }
 

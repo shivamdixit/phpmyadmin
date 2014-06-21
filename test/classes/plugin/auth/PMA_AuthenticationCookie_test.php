@@ -97,7 +97,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
 
         $attrInstance = new ReflectionProperty('PMA_Response', '_instance');
         $attrInstance->setAccessible(true);
-        $attrInstance->setValue(null, $mockResponse);
+        $attrInstance->setValue($mockResponse);
         $GLOBALS['conn_error'] = true;
         $GLOBALS['cfg']['PmaAbsoluteUri'] = 'https://phpmyadmin.net/';
         $this->assertTrue(
@@ -115,8 +115,6 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
             ->method('isAjax')
             ->with()
             ->will($this->returnValue(false));
-
-
 
         $_REQUEST['old_usr'] = '';
         $GLOBALS['cfg']['LoginCookieRecall'] = true;
@@ -173,7 +171,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
 
         $attrInstance = new ReflectionProperty('PMA_Response', '_instance');
         $attrInstance->setAccessible(true);
-        $attrInstance->setValue(null, $mockResponse);
+        $attrInstance->setValue($mockResponse);
 
         $GLOBALS['pmaThemeImage'] = 'test';
         $GLOBALS['conn_error'] = true;
@@ -316,7 +314,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
 
         $attrInstance = new ReflectionProperty('PMA_Response', '_instance');
         $attrInstance->setAccessible(true);
-        $attrInstance->setValue(null, $mockResponse);
+        $attrInstance->setValue($mockResponse);
 
         $GLOBALS['pmaThemeImage'] = 'test';
         $GLOBALS['cfg']['Lang'] = '';
@@ -366,7 +364,8 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         );
 
         $this->assertContains(
-            'src="https://www.google.com/recaptcha/api/challenge?k=testpubkey&amp;hl=en">',
+            'src="https://www.google.com/recaptcha/api/'
+            . 'challenge?k=testpubkey&amp;hl=en">',
             $result
         );
 
@@ -401,7 +400,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
             $result
         );
 
-        $attrInstance->setValue(null, $restoreInstance);
+        $attrInstance->setValue($restoreInstance);
     }
 
     /**
@@ -431,7 +430,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
 
         $attrInstance = new ReflectionProperty('PMA_Response', '_instance');
         $attrInstance->setAccessible(true);
-        $attrInstance->setValue(null, $mockResponse);
+        $attrInstance->setValue($mockResponse);
 
         $_REQUEST['old_usr'] = 'user1';
         $GLOBALS['cfg']['Server']['LogoutURL'] = 'http://www.phpmyadmin.net/logout';
@@ -445,7 +444,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
             $GLOBALS['header'][0]
         );
 
-        $attrInstance->setValue(null, $restoreInstance);
+        $attrInstance->setValue($restoreInstance);
     }
 
     /**
@@ -576,6 +575,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $GLOBALS['server'] = 1;
         $_COOKIE['pmaServer-1'] = 'pmaServ1';
         $_COOKIE['pmaUser-1'] = '';
+        $_COOKIE['pma_iv'] = base64_encode('testiv09');
 
         $this->assertFalse(
             $this->object->authCheck()
@@ -591,6 +591,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $GLOBALS['server'] = 1;
         $_COOKIE['pmaServer-1'] = 'pmaServ1';
         $_COOKIE['pmaUser-1'] = 'pmaUser1';
+        $_COOKIE['pma_iv'] = base64_encode('testiv09');
         $_COOKIE['pmaPass-1'] = '';
         $GLOBALS['cfg']['blowfish_secret'] = 'secret';
         $_SESSION['last_access_time'] = time() - 1000;
@@ -599,7 +600,6 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $this->assertFalse(
             $this->object->authCheck()
         );
-
 
         if ($defineAgain !== 'PMA_TEST_NO_DEFINE') {
             define('PMA_CLEAR_COOKIES', $defineAgain);
@@ -658,7 +658,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
      *
      * @return void
      */
-    public function testAuthCheckBlowfishCase()
+    public function testAuthCheckDecryptUser()
     {
         $GLOBALS['cfg']['Server']['auth_swekey_config'] = 'testConfigSwekey';
         $GLOBALS['server'] = 1;
@@ -666,6 +666,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $_REQUEST['pma_username'] = '';
         $_COOKIE['pmaServer-1'] = 'pmaServ1';
         $_COOKIE['pmaUser-1'] = 'pmaUser1';
+        $_COOKIE['pma_iv'] = base64_encode('testiv09');
         $GLOBALS['cfg']['blowfish_secret'] = 'secret';
         $_SESSION['last_access_time'] = '';
         $_SESSION['last_valid_captcha'] = true;
@@ -673,11 +674,11 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         // mock for blowfish function
         $this->object = $this->getMockBuilder('AuthenticationCookie')
             ->disableOriginalConstructor()
-            ->setMethods(array('blowfishDecrypt'))
+            ->setMethods(array('cookieDecrypt'))
             ->getMock();
 
         $this->object->expects($this->once())
-            ->method('blowfishDecrypt')
+            ->method('cookieDecrypt')
             ->will($this->returnValue('testBF'));
 
         $this->assertFalse(
@@ -695,7 +696,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
      *
      * @return void
      */
-    public function testAuthCheckBlowfishCaseSecond()
+    public function testAuthCheckDecryptPassword()
     {
         $GLOBALS['cfg']['Server']['auth_swekey_config'] = 'testConfigSwekey';
         $GLOBALS['server'] = 1;
@@ -704,6 +705,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $_COOKIE['pmaServer-1'] = 'pmaServ1';
         $_COOKIE['pmaUser-1'] = 'pmaUser1';
         $_COOKIE['pmaPass-1'] = 'pmaPass1';
+        $_COOKIE['pma_iv'] = base64_encode('testiv09');
         $GLOBALS['cfg']['blowfish_secret'] = 'secret';
         $_SESSION['last_valid_captcha'] = true;
         $_SESSION['last_access_time'] = time() - 1000;
@@ -712,11 +714,11 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         // mock for blowfish function
         $this->object = $this->getMockBuilder('AuthenticationCookie')
             ->disableOriginalConstructor()
-            ->setMethods(array('blowfishDecrypt'))
+            ->setMethods(array('cookieDecrypt'))
             ->getMock();
 
         $this->object->expects($this->at(1))
-            ->method('blowfishDecrypt')
+            ->method('cookieDecrypt')
             ->will($this->returnValue("\xff(blank)"));
 
         $this->assertTrue(
@@ -747,6 +749,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
         $_REQUEST['pma_username'] = '';
         $_COOKIE['pmaServer-1'] = 'pmaServ1';
         $_COOKIE['pmaUser-1'] = 'pmaUser1';
+        $_COOKIE['pma_iv'] = base64_encode('testiv09');
         $GLOBALS['cfg']['blowfish_secret'] = 'secret';
         $_SESSION['last_access_time'] = 1;
         $_SESSION['last_valid_captcha'] = true;
@@ -873,7 +876,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
 
         $attrInstance = new ReflectionProperty('PMA_Response', '_instance');
         $attrInstance->setAccessible(true);
-        $attrInstance->setValue(null, $mockResponse);
+        $attrInstance->setValue($mockResponse);
 
         $this->object->authSetUser();
 
@@ -896,7 +899,7 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
             $GLOBALS['header'][0]
         );
 
-        $attrInstance->setValue(null, $restoreInstance);
+        $attrInstance->setValue($restoreInstance);
     }
 
     /**
@@ -1005,32 +1008,32 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test for AuthenticationConfig::_getBlowfishSecret
+     * Test for AuthenticationConfig::_getEncryptionSecret
      *
      * @return void
      */
-    public function testGetBlowfishSecret()
+    public function testGetEncryptionSecret()
     {
         $method = new \ReflectionMethod(
             'AuthenticationCookie',
-            '_getBlowfishSecret'
+            '_getEncryptionSecret'
         );
         $method->setAccessible(true);
 
         // case 1
 
         $GLOBALS['cfg']['blowfish_secret'] = '';
-        $_SESSION['auto_blowfish_secret'] = '';
+        $_SESSION['encryption_key'] = '';
 
         $result = $method->invoke($this->object, null);
 
         $this->assertEquals(
             $result,
-            $_SESSION['auto_blowfish_secret']
+            $_SESSION['encryption_key']
         );
 
         $this->assertEquals(
-            23,
+            256,
             strlen($result)
         );
 
@@ -1047,56 +1050,34 @@ class PMA_AuthenticationCookie_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test for AuthenticationConfig::blowfishEncrypt
+     * Test for AuthenticationConfig::cookieEncrypt
      *
      * @return void
      */
-    public function testBlowfishEncrypt()
+    public function testCookieEncrypt()
     {
-        if (! function_exists('mcrypt_encrypt')) {
-            $this->assertEquals(
-                '/xytF/kXKuBx7zHzGexkFw==',
-                $this->object->blowfishEncrypt('data123', 'sec321')
-            );
-        } else {
-            //using our own iv for testing
-            $tmp = $GLOBALS['iv'];
-            $GLOBALS['iv'] = "testiv09";
-            $this->assertEquals(
-                'x/2GwHKoPyc=',
-                $this->object->blowfishEncrypt('data123', 'sec321')
-            );
-            $GLOBALS['iv'] = $tmp;
-        }
+        $this->object->setIV('testiv09');
+        $this->assertEquals(
+            'vzJVtW8Ujd4phw7Cxl2PcQ==',
+            $this->object->cookieEncrypt('data123', 'sec321')
+        );
     }
 
     /**
-     * Test for AuthenticationConfig::blowfishDecrypt
+     * Test for AuthenticationConfig::cookieDecrypt
      *
      * @return void
      */
-    public function testBlowfishDecrypt()
+    public function testCookieDecrypt()
     {
-        if (function_exists('mcrypt_encrypt')) {
-
-            //using our own iv for testing
-            $tmp = $GLOBALS['iv'];
-            $GLOBALS['iv'] = "testiv09";
-            $this->assertEquals(
-                'data123',
-                $this->object->blowfishDecrypt('x/2GwHKoPyc=', 'sec321')
-            );
-            $GLOBALS['iv'] = $tmp;
-
-        } else {
-            $this->assertEquals(
-                'data123',
-                $this->object->blowfishDecrypt(
-                    '/xytF/kXKuBx7zHzGexkFw==',
-                    'sec321'
-                )
-            );
-        }
+        $this->object->setIV('testiv09');
+        $this->assertEquals(
+            'data123',
+            $this->object->cookieDecrypt(
+                'vzJVtW8Ujd4phw7Cxl2PcQ==',
+                'sec321'
+            )
+        );
     }
 
 

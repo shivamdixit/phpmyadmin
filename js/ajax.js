@@ -17,9 +17,9 @@ var AJAX = {
      */
     xhr: null,
     /**
-     * @var object array, list of altered targets
+     * @var object lockedTargets, list of locked targets
      */
-    alteredTargets: [],
+    lockedTargets: {},
     /**
      * @var function Callback to execute after a successful request
      *               Used by PMA_commonFunctions from common.js
@@ -133,21 +133,46 @@ var AJAX = {
         }
     },
     /**
-     * Registers a keyup function when changes are made in input field
-     * @param event for the trigged function
+     * function to handle lock page mechanism
+     *
+     * @param event the event object
      *
      * @return void
      */
-    inputAltered: function(event) {
-        var i;
-        for(i=0; i < AJAX.alteredTargets.length; i++) {
-            if(AJAX.alteredTargets[i] == event.target)
-                break;
+    lockPageHandler: function(event) {
+        var lockId = $(this).data('lock-id');
+        if (typeof lockId === 'undefined') {
+            return;
         }
-
-        if(i == AJAX.alteredTargets.length) {
-            AJAX.alteredTargets[i] = event.target;
+        /*
+         * @todo Fix Code mirror does not give correct full value (query)
+         * in textarea, it returns only the change in content.
+         */
+        var newHash = AJAX.hash($(this).val());
+        var oldHash = $(this).data('val-hash');
+        // Set lock if old value != new value
+        // otherwise release lock
+        if (oldHash !== newHash) {
+            AJAX.lockedTargets[lockId] = true;
+        } else {
+            delete AJAX.lockedTargets[lockId];
         }
+        // Show lock icon if locked targets is not empty.
+        // otherwise remove lock icon
+        if (!jQuery.isEmptyObject(AJAX.lockedTargets)) {
+            $('#lock_page_icon').html(PMA_getImage('s_lock.png').toString());
+        } else {
+            $('#lock_page_icon').html('');
+        }
+    },
+    /**
+     * resets the lock
+     *
+     * @return void
+     */
+    resetLock: function() {
+        AJAX.lockedTargets = {};
+        $('#lock_page_icon').html('');
     },
     /**
      * Event handler for clicks on links and form submissions
@@ -166,8 +191,8 @@ var AJAX = {
         } else if ($(this).attr('target')) {
             return true;
         } else if ($(this).hasClass('ajax') || $(this).hasClass('disableAjax')) {
-            //reset the alteredTarget array, as specified AJAX operation has finished
-            AJAX.alteredTargets.length = 0;
+            //reset the lockedTargets object, as specified AJAX operation has finished
+            AJAX.resetLock();
             return true;
         } else if (href && href.match(/^#/)) {
             return true;
@@ -184,30 +209,18 @@ var AJAX = {
             event.stopImmediatePropagation();
         }
 
-        //sometime we accidently click on a url,refresh button or back button
-        //operation to confirm if user want to leave page in such cases
-        //trigger confirm dialog
-        var isInputAltered = false;
-        for (var i = 0; i < AJAX.alteredTargets.length; i++) {
-            if(AJAX.alteredTargets[i].value.length !== 0) {
-                isInputAltered = true;
-                break;
-            }
-        }
-
         //triggers a confirm dialog if:
         //the user has performed some operations on loaded page
         //the user clicks on some link, (won't trigger for buttons)
         //the click event is not triggered by script
         if (typeof event !== 'undefined' && event.type === 'click' &&
             event.isTrigger !== true &&
-            isInputAltered &&
+            !jQuery.isEmptyObject(AJAX.lockedTargets) &&
             confirm(PMA_messages.strConfirmNavigation) === false
         ) {
             return false;
         }
-        //reset
-        AJAX.alteredTargets.length = 0;
+        AJAX.resetLock();
 
         if (AJAX.active === true) {
             // Cancel the old request if abortable, when the user requests
@@ -327,6 +340,7 @@ var AJAX = {
                     .not('#pma_navigation')
                     .not('#floating_menubar')
                     .not('#goto_pagetop')
+                    .not('#lock_page_icon')
                     .not('#page_content')
                     .not('#selflink')
                     .not('#session_debug')
@@ -374,16 +388,62 @@ var AJAX = {
                 }
 
                 $('#pma_errors').remove();
+
+                var msg = '';
+                if(data._errSubmitMsg){
+                    msg = data._errSubmitMsg;
+                }
                 if (data._errors) {
                     $('<div/>', {id : 'pma_errors'})
                         .insertAfter('#selflink')
                         .append(data._errors);
+                    // bind for php error reporting forms (bottom)
+                    $("#pma_ignore_errors_bottom").bind("click",
+                        function() {
+                            PMA_ignorePhpErrors();
+                    });
+                    $("#pma_ignore_all_errors_bottom").bind("click",
+                        function() {
+                        PMA_ignorePhpErrors(false);
+                    });
+                    // In case of 'sendErrorReport'='always'
+                    // submit the hidden error reporting form.
+                    if (data._sendErrorAlways == '1'
+                        && data._stopErrorReportLoop != '1'
+                    ) {
+                        $("#pma_report_errors_form").submit();
+                        PMA_ajaxShowMessage(PMA_messages['phpErrorsBeingSubmitted'], false);
+                        $('html, body').animate({scrollTop:$(document).height()}, 'slow');
+                    } else if (data._promptPhpErrors) {
+                        // otherwise just prompt user if it is set so.
+                        msg = msg + PMA_messages['phpErrorsFound'];
+                        // scroll to bottom where all the erros are displayed.
+                        $('html, body').animate({scrollTop:$(document).height()}, 'slow');
+                    }
                 }
+                PMA_ajaxShowMessage(msg, false);
+                // bind for php error reporting forms (popup)
+                $("#pma_ignore_errors_popup").bind("click", function() {
+                    PMA_ignorePhpErrors()
+                });
+                $("#pma_ignore_all_errors_popup").bind("click", function() {
+                    PMA_ignorePhpErrors(false)
+                });
 
                 if (typeof AJAX._callback === 'function') {
                     AJAX._callback.call();
                 }
                 AJAX._callback = function () {};
+            });
+            // initializes all lock-page elements lock-id and
+            // val-hash data property
+            $('#page_content form.lock-page textarea, ' +
+            '#page_content form.lock-page input[type="text"]').each(function(i){
+                $(this).data('lock-id', i);
+                // val-hash is the hash of default value of the field
+                // so that it can be compared with new value hash
+                // to check whether field was modified or not.
+                $(this).data('val-hash', AJAX.hash($(this).val()));
             });
         } else {
             PMA_ajaxShowMessage(data.error, false);
@@ -543,6 +603,35 @@ AJAX.registerOnload('functions.js', function () {
             $(this).data('onsubmit', this.onsubmit).attr('onsubmit', '');
         }
     });
+    /**
+     * Attach event listener to events when user modify visible
+     * Input or Textarea fields to make changes in forms
+     */
+    $('#page_content').on(
+        'keyup change',
+        'form.lock-page textarea, ' +
+        'form.lock-page input[type="text"]',
+        AJAX.lockPageHandler
+    );
+    /**
+     * Reset lock when lock-page form reset event is fired
+     * Note: reset does not bubble in all browser so attach to
+     * form directly.
+     */
+    $('form.lock-page').on('reset', function(event){
+        AJAX.resetLock();
+    });
+});
+
+/**
+ * Unbind all event handlers before tearing down a page
+ */
+AJAX.registerTeardown('functions.js', function () {
+    $('#page_content').off('keyup change',
+        'form.lock-page textarea, ' +
+        'form.lock-page input[type="text"]'
+    );
+    $('form.lock-page').off('reset');
 });
 
 /**
@@ -904,12 +993,6 @@ $(function () {
  */
 $('a').live('click', AJAX.requestHandler);
 $('form').live('submit', AJAX.requestHandler);
-
-/**
- * Attach event listener to events when user modify visible
- * Input fields to make changes in forms
- */
-$('#page_content').live("keyup", "input[type='text']:visible", AJAX.inputAltered);
 
 /**
  * Gracefully handle fatal server errors

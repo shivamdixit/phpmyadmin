@@ -13,11 +13,11 @@ if (! defined('PHPMYADMIN')) {
 /**
  * Retrieve form parameters for insert/edit form
  *
- * @param string $db                 name of the database
- * @param string $table              name of the table
- * @param array  $where_clauses      where clauses
- * @param array  $where_clause_array array of where clauses
- * @param string $err_url            error url
+ * @param string     $db                 name of the database
+ * @param string     $table              name of the table
+ * @param array|null $where_clauses      where clauses
+ * @param array      $where_clause_array array of where clauses
+ * @param string     $err_url            error url
  *
  * @return array $_form_params array of insert/edit form parameters
  */
@@ -45,7 +45,7 @@ function PMA_getFormParametersForInsertForm($db, $table, $where_clauses,
 /**
  * Creates array of where clauses
  *
- * @param array $where_clause where clause
+ * @param array|string|null $where_clause where clause
  *
  * @return array|void whereClauseArray array of where clauses
  */
@@ -487,11 +487,11 @@ function PMA_getFunctionColumn($column, $is_upload, $column_name_appendix,
  *
  * @param array   $column               description of column in given table
  * @param string  $column_name_appendix the name atttibute
- * @param array   $real_null_value      is column value null or not null
+ * @param boolean $real_null_value      is column value null or not null
  * @param integer $tabindex             tab index
  * @param integer $tabindex_for_null    +6000
  * @param integer $idindex              id index
- * @param array   $vkey                 [multi_edit]['row_id']
+ * @param string  $vkey                 [multi_edit]['row_id']
  * @param array   $foreigners           keys into foreign fields
  * @param array   $foreignData          data about the foreign keys
  *
@@ -593,7 +593,7 @@ function PMA_getNullifyCodeForNullColumn($column, $foreigners, $foreignData)
  * @param array   $titles                An HTML IMG tag for a particular icon from
  *                                       a theme, which may be an actual file or
  *                                       an icon from a sprite
- * @param array   $text_dir              text direction
+ * @param string  $text_dir              text direction
  * @param string  $special_chars_encoded replaced char if the string starts
  *                                       with a \r\n pair (0x0d0a) add an extra \n
  * @param string  $vkey                  [multi_edit]['row_id']
@@ -798,8 +798,8 @@ function PMA_dispRowForeignData($backup_field, $column_name_appendix,
  * @param integer $tabindex              tab index
  * @param integer $tabindex_for_value    offset for the values tabindex
  * @param integer $idindex               id index
- * @param array   $text_dir              text direction
- * @param array   $special_chars_encoded replaced char if the string starts
+ * @param string  $text_dir              text direction
+ * @param string  $special_chars_encoded replaced char if the string starts
  *                                       with a \r\n pair (0x0d0a) add an extra \n
  *
  * @return string                       an html snippet
@@ -847,7 +847,7 @@ function PMA_getTextarea($column, $backup_field, $column_name_appendix,
 /**
  * Get HTML for enum type
  *
- * @param string  $column               description of column in given table
+ * @param array   $column               description of column in given table
  * @param string  $backup_field         hidden input field
  * @param string  $column_name_appendix the name atttibute
  * @param array   $extracted_columnspec associative array containing type,
@@ -923,7 +923,7 @@ function PMA_getColumnEnumValues($column, $extracted_columnspec)
  * @param integer $tabindex             tab index
  * @param integer $tabindex_for_value   offset for the values tabindex
  * @param integer $idindex              id index
- * @param array   $data                 data to edit
+ * @param string  $data                 data to edit
  * @param array   $column_enum_values   $column['values']
  *
  * @return string                       an html snippet
@@ -1188,17 +1188,19 @@ function PMA_getHTMLinput($column, $column_name_appendix, $special_chars,
         $the_class .= ' datetimefield';
     }
     $input_min_max = false;
-    if (in_array(
-        $column['True_Type'],
-        $GLOBALS['PMA_Types']->getIntegerTypes()
-    )) {
-        $input_type = 'number';
-        $is_unsigned = substr($column['pma_type'], -9) === ' unsigned';
-        $min_max_values = $GLOBALS['PMA_Types']->getIntegerRange(
-            $column['True_Type'], ! $is_unsigned
-        );
-        $input_min_max = 'min="' . $min_max_values[0] . '" '
-            . 'max="' . $min_max_values[1] . '" ';
+    if (!$GLOBALS['cfg']['ShowFunctionFields']) {
+        if (in_array(
+            $column['True_Type'],
+            $GLOBALS['PMA_Types']->getIntegerTypes()
+        )) {
+            $input_type = 'number';
+            $is_unsigned = substr($column['pma_type'], -9) === ' unsigned';
+            $min_max_values = $GLOBALS['PMA_Types']->getIntegerRange(
+                $column['True_Type'], ! $is_unsigned
+            );
+            $input_min_max = 'min="' . $min_max_values[0] . '" '
+                . 'max="' . $min_max_values[1] . '" ';
+        }
     }
     return '<input type="' . $input_type . '"'
         . ' name="fields' . $column_name_appendix . '"'
@@ -1240,6 +1242,8 @@ function PMA_getSelectOptionForUpload($vkey, $column)
             . $files
             . '</select>' . "\n";
     }
+
+    return null;
 }
 
 /**
@@ -1296,7 +1300,7 @@ function PMA_getMaxUploadSize($column, $biggest_max_file_size)
  * @param integer $tabindex_for_value    offset for the values tabindex
  * @param integer $idindex               id index
  * @param string  $text_dir              text direction
- * @param array   $special_chars_encoded replaced char if the string starts
+ * @param string  $special_chars_encoded replaced char if the string starts
  *                                       with a \r\n pair (0x0d0a) add an extra \n
  * @param string  $data                  data to edit
  * @param array   $extracted_columnspec  associative array containing type,
@@ -1599,8 +1603,10 @@ function PMA_getSumbitAndResetButtonForActionsPanel($tabindex, $tabindex_for_val
     . '<td colspan="3" class="right vmiddle">'
     . '<input type="submit" class="control_at_footer" value="' . __('Go') . '"'
     . ' tabindex="' . ($tabindex + $tabindex_for_value + 6) . '" id="buttonYes" />'
-    . '<input type="reset" class="control_at_footer" value="' . __('Reset') . '"'
+    . '<input type="button" class="preview_sql" value="' . __('Preview SQL') . '"'
     . ' tabindex="' . ($tabindex + $tabindex_for_value + 7) . '" />'
+    . '<input type="reset" class="control_at_footer" value="' . __('Reset') . '"'
+    . ' tabindex="' . ($tabindex + $tabindex_for_value + 8) . '" />'
     . '</td>';
 }
 
@@ -2648,11 +2654,11 @@ function PMA_getHtmlForInsertEditColumnType($column)
  */
 function PMA_getHtmlForInsertEditFormHeader($has_blob_field, $is_upload)
 {
-    $html_output ='<form id="insertForm" ';
+    $html_output ='<form id="insertForm" class="lock-page ';
     if ($has_blob_field && $is_upload) {
-        $html_output .='class="disableAjax" ';
+        $html_output .='disableAjax';
     }
-    $html_output .='method="post" action="tbl_replace.php" name="insertForm" ';
+    $html_output .='" method="post" action="tbl_replace.php" name="insertForm" ';
     if ($is_upload) {
         $html_output .= ' enctype="multipart/form-data"';
     }

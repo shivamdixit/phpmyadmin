@@ -636,13 +636,6 @@ class PMA_DisplayResults
         // contains accented characters
         $html_sql_query = htmlspecialchars($this->__get('sql_query'));
 
-        /**
-         * @todo move this to a central place
-         * @todo for other future table types
-         */
-        $is_innodb = (isset($showtable['Type'])
-            && $showtable['Type'] == self::TABLE_TYPE_INNO_DB);
-
         // Navigation bar
         $table_navigation_html .= '<table class="navigation nospacing nopadding">'
             . '<tr>'
@@ -1145,7 +1138,7 @@ class PMA_DisplayResults
                         $fields_meta[$i], $sort_expression,
                         $sort_expression_nodirection, $i, $unsorted_sql_query,
                         $session_max_rows, $direction, $comments,
-                        $sort_direction, $directionCondition, $col_visib,
+                        $sort_direction, $col_visib,
                         $col_visib[$j]
                     );
 
@@ -1822,11 +1815,9 @@ class PMA_DisplayResults
      * @param integer $column_index                the index of the column
      * @param string  $unsorted_sql_query          the unsorted sql query
      * @param integer $session_max_rows            maximum rows resulted by sql
-     * @param array   $direction                   the display direction
+     * @param string  $direction                   the display direction
      * @param string  $comments                    comment for row
      * @param array   $sort_direction              sort direction
-     * @param boolean $directionCondition          display direction horizontal
-     *                                             or horizontalflipped
      * @param boolean $col_visib                   column is visible(false)
      *        array                                column isn't visible(string array)
      * @param string  $col_visib_j                 element of $col_visib array
@@ -1840,7 +1831,7 @@ class PMA_DisplayResults
     private function _getOrderLinkAndSortedHeaderHtml(
         $fields_meta, $sort_expression, $sort_expression_nodirection,
         $column_index, $unsorted_sql_query, $session_max_rows, $direction,
-        $comments, $sort_direction, $directionCondition, $col_visib, $col_visib_j
+        $comments, $sort_direction, $col_visib, $col_visib_j
     ) {
 
         $sorted_header_html = '';
@@ -1962,7 +1953,6 @@ class PMA_DisplayResults
                 $sort_tbl_new = $matches[0];
             }
 
-
             // $name_to_use_in_sort might contain a space due to
             // formatting of function expressions like "COUNT(name )"
             // so we remove the space in this situation
@@ -2031,9 +2021,9 @@ class PMA_DisplayResults
         foreach ($sort_expression_nodirection as $index => $clause) {
             if (strpos($clause, '.') !== false) {
                 $fragments = explode('.', $clause);
-                $clause2 = $fragments[0] . "." . str_replace('`', ``, $fragments[1]);
+                $clause2 = $fragments[0] . "." . str_replace('`', '', $fragments[1]);
             } else {
-                $clause2 = $sort_tbl . str_replace('`', ``, $clause);
+                $clause2 = $sort_tbl . str_replace('`', '', $clause);
             }
             if ($clause2 === $sort_tbl . $name_to_use_in_sort) {
                 $index_in_expression = $index;
@@ -2086,7 +2076,7 @@ class PMA_DisplayResults
      * Get sort url paramaeters - sort order and order image
      *
      * @param array   $sort_direction the sort direction
-     * @param array   $sort_order     the sorting order
+     * @param string  $sort_order     the sorting order
      * @param integer $column_index   the index of the column
      * @param integer $index          the index of sort direction array.
      *
@@ -2466,7 +2456,7 @@ class PMA_DisplayResults
     {
         return '<td ' . $align . ' class="'
             . $this->_addClass(
-                $class, $condition_field, $meta, ' nowrap'
+                $class, $condition_field, $meta, 'nowrap'
             )
             . '"></td>';
     } // end of the '_buildEmptyDisplay()' function
@@ -2475,17 +2465,19 @@ class PMA_DisplayResults
     /**
      * Adds the relevant classes.
      *
-     * @param string $class                 class of table cell
-     * @param bool   $condition_field       whether to add CSS class condition
-     * @param object $meta                  the meta-information about the field
-     * @param string $nowrap                avoid wrapping
-     * @param bool   $is_field_truncated    is field truncated (display ...)
-     * @param string $transformation_plugin transformation plugin.
-     *                                      Can also be the default function:
-     *                                      PMA_mimeDefaultFunction
-     * @param string $default_function      default transformation function
+     * @param string        $class                 class of table cell
+     * @param bool          $condition_field       whether to add CSS class
+     *                                             condition
+     * @param object        $meta                  the meta-information about the
+     *                                             field
+     * @param string        $nowrap                avoid wrapping
+     * @param bool          $is_field_truncated    is field truncated (display ...)
+     * @param object|string $transformation_plugin transformation plugin.
+     *                                             Can also be the default function:
+     *                                             PMA_mimeDefaultFunction
+     * @param string        $default_function      default transformation function
      *
-     * @return string the list of classes
+     * @return string  the list of classes
      *
      * @access  private
      *
@@ -2495,38 +2487,45 @@ class PMA_DisplayResults
         $class, $condition_field, $meta, $nowrap, $is_field_truncated = false,
         $transformation_plugin = '', $default_function = ''
     ) {
+        $classes = array(
+            $class,
+            $nowrap,
+        );
+
+        if (isset($meta->mimetype)) {
+            $classes[] = preg_replace('/\//', '_', $meta->mimetype);
+        }
+
+        if ($condition_field) {
+            $classes[] = 'condition';
+        }
+
+        if ($is_field_truncated) {
+            $classes[] = 'truncated';
+        }
+
+        if ($transformation_plugin != $default_function) {
+            $classes[] = 'transformed';
+        }
 
         // Define classes to be added to this data field based on the type of data
-        $enum_class = '';
-        if (strpos($meta->flags, 'enum') !== false) {
-            $enum_class = ' enum';
+        $matches = array(
+            'enum' => 'enum',
+            'set' => 'set',
+            'binary' => 'hex',
+        );
+
+        foreach ($matches as $key => $value) {
+            if (strpos($meta->flags, $key) !== false) {
+                $classes[] = $value;
+            }
         }
 
-        $set_class = '';
-        if (strpos($meta->flags, 'set') !== false) {
-            $set_class = ' set';
-        }
-
-        $bit_class = '';
         if (strpos($meta->type, 'bit') !== false) {
-            $bit_class = ' bit';
+            $classes[] = 'bit';
         }
 
-        $hex_class = '';
-        if (strpos($meta->flags, 'binary') !== false) {
-            $hex_class = ' hex';
-        }
-
-        $mime_type_class = '';
-        if (isset($meta->mimetype)) {
-            $mime_type_class = ' ' . preg_replace('/\//', '_', $meta->mimetype);
-        }
-
-        return $class . ($condition_field ? ' condition' : '') . $nowrap
-            . ' ' . ($is_field_truncated ? ' truncated' : '')
-            . ($transformation_plugin != $default_function ? ' transformed' : '')
-            . $enum_class . $set_class . $bit_class . $hex_class . $mime_type_class;
-
+        return implode(' ', $classes);
     } // end of the '_addClass()' function
 
 
@@ -2672,18 +2671,12 @@ class PMA_DisplayResults
                 } // end if (1.2.1)
 
                 // 1.2.2 Delete/Kill link(s)
-                if (($is_display['del_lnk'] == self::DELETE_ROW)
-                    || ($is_display['del_lnk'] == self::KILL_PROCESS)
-                ) {
-
-                    list($del_query, $del_url, $del_str, $js_conf)
-                        = $this->_getDeleteAndKillLinks(
-                            $where_clause, $clause_is_unique,
-                            $url_sql_query, $is_display['del_lnk'],
-                            $row
-                        );
-
-                } // end if (1.2.2)
+                list($del_query, $del_url, $del_str, $js_conf)
+                    = $this->_getDeleteAndKillLinks(
+                        $where_clause, $clause_is_unique,
+                        $url_sql_query, $is_display['del_lnk'],
+                        $row
+                    );
 
                 // 1.3 Displays the links at left if required
                 if ((($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_LEFT)
@@ -3153,7 +3146,6 @@ class PMA_DisplayResults
             $linking_url_params[$link_relations['link_param'][0]] = $sql;
         }
 
-
         if (! empty($link_relations['link_dependancy_params'])) {
 
             foreach ($link_relations['link_dependancy_params'] as $new_param) {
@@ -3459,18 +3451,22 @@ class PMA_DisplayResults
                     $_url_params, 'text'
                 );
 
+            $kill = $GLOBALS['dbi']->getKillQuery($row[0]);
+
             $_url_params = array(
                     'db'        => 'mysql',
-                    'sql_query' => 'KILL ' . $row[0],
+                    'sql_query' => $kill,
                     'goto'      => $lnk_goto,
                 );
 
             $del_url  = 'sql.php' . PMA_URL_getCommon($_url_params);
-            $del_query = 'KILL ' . $row[0];
-            $js_conf  = 'KILL ' . $row[0];
+            $del_query = $kill;
+            $js_conf  = $kill;
             $del_str = PMA_Util::getIcon(
                 'b_drop.png', __('Kill')
             );
+        } else {
+            $del_url = $del_query = $del_str = $js_conf = null;
         }
 
         return array($del_query, $del_url, $del_str, $js_conf);
@@ -3649,21 +3645,22 @@ class PMA_DisplayResults
     /**
      * Prepare data cell for numeric type fields
      *
-     * @param string  $column                the relevant column in data row
-     * @param string  $class                 the html class for column
-     * @param boolean $condition_field       the column should highlighted
-     *                                       or not
-     * @param object  $meta                  the meta-information about this
-     *                                       field
-     * @param array   $map                   the list of relations
-     * @param boolean $is_field_truncated    the condition for blob data
-     *                                       replacements
-     * @param array   $analyzed_sql          the analyzed query
-     * @param string  $transformation_plugin the name of transformation plugin
-     * @param string  $default_function      the default transformation function
-     * @param string  $transform_options     the transformation parameters
+     * @param string        $column                the relevant column in data row
+     * @param string        $class                 the html class for column
+     * @param boolean       $condition_field       the column should highlighted
+     *                                             or not
+     * @param object        $meta                  the meta-information about this
+     *                                             field
+     * @param array         $map                   the list of relations
+     * @param boolean       $is_field_truncated    the condition for blob data
+     *                                             replacements
+     * @param array         $analyzed_sql          the analyzed query
+     * @param object|string $transformation_plugin the name of transformation plugin
+     * @param string        $default_function      the default transformation
+     *                                             function
+     * @param string        $transform_options     the transformation parameters
      *
-     * @return  string  $cell               the prepared cell, html content
+     * @return  string  $cell the prepared cell, html content
      *
      * @access  private
      *
@@ -3809,23 +3806,29 @@ class PMA_DisplayResults
     /**
      * Get data cell for non numeric type fields
      *
-     * @param string  $column                the relevant column in data row
-     * @param string  $class                 the html class for column
-     * @param object  $meta                  the meta-information about the field
-     * @param array   $map                   the list of relations
-     * @param array   $_url_params           the parameters for generate url
-     * @param boolean $condition_field       the column should highlighted
-     *                                       or not
-     * @param string  $transformation_plugin the name of transformation function
-     * @param string  $default_function      the default transformation function
-     * @param string  $transform_options     the transformation parameters
-     * @param boolean $is_field_truncated    is data truncated due to LimitChars
-     * @param array   $analyzed_sql          the analyzed query
-     * @param integer &$dt_result            the link id associated to the query
-     *                                       which results have to be displayed
-     * @param integer $col_index             the column index
+     * @param string        $column                the relevant column in data row
+     * @param string        $class                 the html class for column
+     * @param object        $meta                  the meta-information about
+     *                                             the field
+     * @param array         $map                   the list of relations
+     * @param array         $_url_params           the parameters for generate
+     *                                             url
+     * @param boolean       $condition_field       the column should highlighted
+     *                                             or not
+     * @param object|string $transformation_plugin the name of transformation
+     *                                             function
+     * @param string        $default_function      the default transformation
+     *                                             function
+     * @param string        $transform_options     the transformation parameters
+     * @param boolean       $is_field_truncated    is data truncated due to
+     *                                             LimitChars
+     * @param array         $analyzed_sql          the analyzed query
+     * @param integer       &$dt_result            the link id associated to
+     *                                             the query which results
+     *                                             have to be displayed
+     * @param integer       $col_index             the column index
      *
-     * @return  string  $cell               the prepared data cell, html content
+     * @return  string  $cell the prepared data cell, html content
      *
      * @access  private
      *
@@ -3956,6 +3959,65 @@ class PMA_DisplayResults
 
     } // end of the '_getDataCellForNonNumericColumns()' function
 
+    /**
+     * Get one link for the vertical direction mode.
+     *
+     * @param string $leftOrRight      'left' or 'right' constant
+     * @param string $linkName         the name of the link to generate
+     * @param array  $vertical_display the vertical display elements
+     *
+     * @return string       html content
+     *
+     * @access  private
+     *
+     */
+    private function _getOneLink($leftOrRight, $linkName, $vertical_display)
+    {
+        $html = '';
+        if ((($GLOBALS['cfg']['RowActionLinks'] == $leftOrRight)
+            || ($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_BOTH))
+            && is_array($vertical_display[$linkName])
+            && ((count($vertical_display[$linkName]) > 0)
+            || !empty($vertical_display['textbtn']))
+        ) {
+            $html .= $this->_getOperationLinksForVerticalTable(
+                $linkName
+            );
+        } // end if
+        return $html;
+    }
+
+    /**
+     * Get three links for the vertical direction mode.
+     *
+     * @param string $leftOrRight      'left' or 'right' constant
+     * @param array  $vertical_display the vertical display elements
+     *
+     * @return string       html content
+     *
+     * @access  private
+     *
+     */
+    private function _getThreeLinks($leftOrRight, $vertical_display)
+    {
+        $html = '';
+
+        // Prepares "edit" link if required
+        $html .= $this->_getOneLink(
+            $leftOrRight, 'edit', $vertical_display
+        );
+
+        // Prepares "copy" link if required
+        $html .= $this->_getOneLink(
+            $leftOrRight, 'copy', $vertical_display
+        );
+
+        // Prepares "delete" link if required
+        $html .= $this->_getOneLink(
+            $leftOrRight, 'delete', $vertical_display
+        );
+        return $html;
+    }
 
     /**
      * Get the resulted table with the vertical direction mode.
@@ -3994,41 +4056,10 @@ class PMA_DisplayResults
                 . '</tr>' . "\n";
         } // end if
 
-        // Prepares "edit" link at top if required
-        if ((($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_LEFT)
-            || ($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_BOTH))
-            && is_array($vertical_display['edit'])
-            && ((count($vertical_display['edit']) > 0)
-            || !empty($vertical_display['textbtn']))
-        ) {
-            $vertical_table_html .= $this->_getOperationLinksForVerticleTable(
-                'edit'
-            );
-        } // end if
-
-        // Prepares "copy" link at top if required
-        if ((($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_LEFT)
-            || ($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_BOTH))
-            && is_array($vertical_display['copy'])
-            && ((count($vertical_display['copy']) > 0)
-            || !empty($vertical_display['textbtn']))
-        ) {
-            $vertical_table_html .= $this->_getOperationLinksForVerticleTable(
-                'copy'
-            );
-        } // end if
-
-        // Prepares "delete" link at top if required
-        if ((($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_LEFT)
-            || ($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_BOTH))
-            && is_array($vertical_display['delete'])
-            && ((count($vertical_display['delete']) > 0)
-            || !empty($vertical_display['textbtn']))
-        ) {
-            $vertical_table_html .= $this->_getOperationLinksForVerticleTable(
-                'delete'
-            );
-        } // end if
+        // Prepare three links at top if required
+        $vertical_table_html .= $this->_getThreeLinks(
+            self::POSITION_LEFT, $vertical_display
+        );
 
         list($col_order, $col_visib) = $this->_getColumnParams($analyzed_sql);
 
@@ -4077,41 +4108,10 @@ class PMA_DisplayResults
                 . '</tr>' . "\n";
         } // end if
 
-        // Prepares "edit" link at bottom if required
-        if ((($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_RIGHT)
-            || ($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_BOTH))
-            && is_array($vertical_display['edit'])
-            && ((count($vertical_display['edit']) > 0)
-            || !empty($vertical_display['textbtn']))
-        ) {
-            $vertical_table_html .= $this->_getOperationLinksForVerticleTable(
-                'edit'
-            );
-        } // end if
-
-        // Prepares "copy" link at bottom if required
-        if ((($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_RIGHT)
-            || ($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_BOTH))
-            && is_array($vertical_display['copy'])
-            && ((count($vertical_display['copy']) > 0)
-            || !empty($vertical_display['textbtn']))
-        ) {
-            $vertical_table_html .= $this->_getOperationLinksForVerticleTable(
-                'copy'
-            );
-        } // end if
-
-        // Prepares "delete" link at bottom if required
-        if ((($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_RIGHT)
-            || ($GLOBALS['cfg']['RowActionLinks'] == self::POSITION_BOTH))
-            && is_array($vertical_display['delete'])
-            && ((count($vertical_display['delete']) > 0)
-            || !empty($vertical_display['textbtn']))
-        ) {
-            $vertical_table_html .= $this->_getOperationLinksForVerticleTable(
-                'delete'
-            );
-        }
+        // Prepare three links at bottom if required
+        $vertical_table_html .= $this->_getThreeLinks(
+            self::POSITION_RIGHT, $vertical_display
+        );
 
         return $vertical_table_html;
 
@@ -4119,7 +4119,7 @@ class PMA_DisplayResults
 
 
     /**
-     * Prepare edit, copy and delete links for verticle table
+     * Prepare edit, copy and delete links for vertical table
      *
      * @param string $operation edit/copy/delete
      *
@@ -4129,7 +4129,7 @@ class PMA_DisplayResults
      *
      * @see     _getVerticalTable()
      */
-    private function _getOperationLinksForVerticleTable($operation)
+    private function _getOperationLinksForVerticalTable($operation)
     {
 
         $link_html = '<tr>' . "\n";
@@ -4156,7 +4156,7 @@ class PMA_DisplayResults
 
         return $link_html;
 
-    } // end of the '_getOperationLinksForVerticleTable' function
+    } // end of the '_getOperationLinksForVerticalTable' function
 
 
     /**
@@ -4586,7 +4586,6 @@ class PMA_DisplayResults
         } elseif (! isset($printview) || ($printview != '1')) {
             $table_html .= "\n" . '<br /><br />' . "\n";
         }
-
 
         // 6. ----- Prepare "Query results operations"
         if ((! isset($printview) || ($printview != '1')) && ! $is_limited_display) {
@@ -5455,22 +5454,23 @@ class PMA_DisplayResults
      * Prepares the displayable content of a data cell in Browse mode,
      * taking into account foreign key description field and transformations
      *
-     * @param string $class                 css classes for the td element
-     * @param bool   $condition_field       whether the column is a part of the
-     *                                      where clause
-     * @param string $analyzed_sql          the analyzed query
-     * @param object $meta                  the meta-information about the field
-     * @param array  $map                   the list of relations
-     * @param string $data                  data
-     * @param string $transformation_plugin transformation plugin.
-     *                                      Can also be the default function:
-     *                                      PMA_mimeDefaultFunction
-     * @param string $default_function      default function
-     * @param string $nowrap                'nowrap' if the content should not
-     *                                      be wrapped
-     * @param string $where_comparison      data for the where clause
-     * @param array  $transform_options     array of options for transformation
-     * @param bool   $is_field_truncated    whether the field is truncated
+     * @param string        $class                 css classes for the td element
+     * @param bool          $condition_field       whether the column is a part of
+     *                                             the where clause
+     * @param string        $analyzed_sql          the analyzed query
+     * @param object        $meta                  the meta-information about the
+     *                                             field
+     * @param array         $map                   the list of relations
+     * @param string        $data                  data
+     * @param object|string $transformation_plugin transformation plugin.
+     *                                             Can also be the default function:
+     *                                             PMA_mimeDefaultFunction
+     * @param string        $default_function      default function
+     * @param string        $nowrap                'nowrap' if the content should
+     *                                             not be wrapped
+     * @param string        $where_comparison      data for the where clause
+     * @param array         $transform_options     options for transformation
+     * @param bool          $is_field_truncated    whether the field is truncated
      *
      * @return string  formatted data
      *

@@ -1173,7 +1173,6 @@ class PMA_Table
                     $new_fields
                 );
 
-
                 /**
                  * @todo revise this code when we support cross-db relations
                  */
@@ -1199,7 +1198,6 @@ class PMA_Table
                     $new_fields
                 );
 
-
                 $get_fields = array(
                     'foreign_field',
                     'master_table',
@@ -1217,24 +1215,6 @@ class PMA_Table
                 PMA_Table::duplicateInfo(
                     'relwork',
                     'relation',
-                    $get_fields,
-                    $where_fields,
-                    $new_fields
-                );
-
-
-                $get_fields = array('x', 'y', 'v', 'h');
-                $where_fields = array(
-                    'db_name' => $source_db,
-                    'table_name' => $source_table
-                );
-                $new_fields = array(
-                    'db_name' => $target_db,
-                    'table_name' => $target_table
-                );
-                PMA_Table::duplicateInfo(
-                    'designerwork',
-                    'designer_coords',
                     $get_fields,
                     $where_fields,
                     $new_fields

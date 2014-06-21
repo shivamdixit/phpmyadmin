@@ -346,23 +346,15 @@ class PMA_DatabaseInterface
     /**
      * returns the beginning of the SQL statement to fetch the list of tables
      *
-     * @param string $this_databases  databases to list
-     * @param string $sql_where_table additional condition
+     * @param string[] $this_databases  databases to list
+     * @param string   $sql_where_table additional condition
      *
      * @return string the SQL statement
      */
     private function _getSqlForTablesFull($this_databases, $sql_where_table)
     {
         if (PMA_DRIZZLE) {
-            $engine_info = PMA_Util::cacheGet('drizzle_engines');
-            $stats_join = "LEFT JOIN (SELECT 0 NUM_ROWS) AS stat ON false";
-            if (isset($engine_info['InnoDB'])
-                && $engine_info['InnoDB']['module_library'] == 'innobase'
-            ) {
-                $stats_join = "LEFT JOIN data_dictionary.INNODB_SYS_TABLESTATS"
-                    . " stat ON (t.ENGINE = 'InnoDB' AND stat.NAME"
-                    . " = (t.TABLE_SCHEMA || '/') || t.TABLE_NAME)";
-            }
+            $stats_join = $this->_getDrizzeStatsJoin();
 
             // data_dictionary.table_cache may not contain any data
             // for some tables, it's just a table cache
@@ -450,7 +442,7 @@ class PMA_DatabaseInterface
      * </code>
      *
      * @param string          $database     database
-     * @param string|bool     $table        table name or false
+     * @param string|false    $table        table name or false
      * @param boolean         $tbl_is_group $table is a table group
      * @param mixed           $link         mysql link
      * @param integer         $limit_offset zero-based offset for the count
@@ -492,7 +484,6 @@ class PMA_DatabaseInterface
         $this_databases = array_map('PMA_Util::sqlAddSlashes', $databases);
 
         $sql = $this->_getSqlForTablesFull($this_databases, $sql_where_table);
-        unset($sql_where_table);
 
         // Sort the tables
         $sql .= " ORDER BY $sort_by $sort_order";
@@ -504,7 +495,6 @@ class PMA_DatabaseInterface
         $tables = $this->fetchResult(
             $sql, array('TABLE_SCHEMA', 'TABLE_NAME'), null, $link
         );
-        unset($sql);
 
         if (PMA_DRIZZLE) {
             // correct I_S and D_D names returned by D_D.TABLES -
@@ -549,121 +539,6 @@ class PMA_DatabaseInterface
             }
         }
         // end (get information from table schema)
-
-        // If permissions are wrong on even one database directory,
-        // information_schema does not return any table info for any database
-        // this is why we fall back to SHOW TABLE STATUS even for MySQL >= 50002
-        if (empty($tables) && !PMA_DRIZZLE) {
-            foreach ($databases as $each_database) {
-                if ($table || (true === $tbl_is_group) || $tble_type) {
-                    $sql = 'SHOW TABLE STATUS FROM '
-                        . PMA_Util::backquote($each_database)
-                        . ' WHERE';
-                    $needAnd = false;
-                    if ($table || (true === $tbl_is_group)) {
-                        $sql .= " `Name` LIKE '"
-                            . PMA_Util::escapeMysqlWildcards(
-                                PMA_Util::sqlAddSlashes($table, true)
-                            )
-                            . "%'";
-                        $needAnd = true;
-                    }
-                    if ($tble_type) {
-                        if ($needAnd) {
-                            $sql .= " AND";
-                        }
-                        if ($tble_type == 'view') {
-                            $sql .= " `Comment` = 'VIEW'";
-                        } else if ($tble_type == 'table') {
-                            $sql .= " `Comment` != 'VIEW'";
-                        }
-                    }
-                } else {
-                    $sql = 'SHOW TABLE STATUS FROM '
-                        . PMA_Util::backquote($each_database);
-                }
-
-                $useStatusCache = false;
-
-                if (extension_loaded('apc')
-                    && isset($GLOBALS['cfg']['Server']['StatusCacheDatabases'])
-                    && ! empty($GLOBALS['cfg']['Server']['StatusCacheLifetime'])
-                ) {
-                    $statusCacheDatabases
-                        = (array) $GLOBALS['cfg']['Server']['StatusCacheDatabases'];
-                    if (in_array($each_database, $statusCacheDatabases)) {
-                        $useStatusCache = true;
-                    }
-                }
-
-                $each_tables = null;
-
-                if ($useStatusCache) {
-                    $cacheKey = 'phpMyAdmin_tableStatus_'
-                        . sha1($GLOBALS['cfg']['Server']['host'] . '_' . $sql);
-
-                    $each_tables = apc_fetch($cacheKey);
-                }
-
-                if (! $each_tables) {
-                    $each_tables = $this->fetchResult($sql, 'Name', null, $link);
-                }
-
-                if ($useStatusCache) {
-                    apc_store(
-                        $cacheKey, $each_tables,
-                        $GLOBALS['cfg']['Server']['StatusCacheLifetime']
-                    );
-                }
-
-                // Sort naturally if the config allows it and we're sorting
-                // the Name column.
-                if ($sort_by == 'Name' && $GLOBALS['cfg']['NaturalOrder']) {
-                    uksort($each_tables, 'strnatcasecmp');
-
-                    if ($sort_order == 'DESC') {
-                        $each_tables = array_reverse($each_tables);
-                    }
-                } else {
-                    // Prepare to sort by creating array of the selected sort
-                    // value to pass to array_multisort
-
-                    // Size = Data_length + Index_length
-                    if ($sort_by == 'Data_length') {
-                        foreach ($each_tables as $table_name => $table_data) {
-                            ${$sort_by}[$table_name] = strtolower(
-                                $table_data['Data_length']
-                                + $table_data['Index_length']
-                            );
-                        }
-                    } else {
-                        foreach ($each_tables as $table_name => $table_data) {
-                            ${$sort_by}[$table_name]
-                                = strtolower($table_data[$sort_by]);
-                        }
-                    }
-
-                    if ($sort_order == 'DESC') {
-                        array_multisort($$sort_by, SORT_DESC, $each_tables);
-                    } else {
-                        array_multisort($$sort_by, SORT_ASC, $each_tables);
-                    }
-
-                    // cleanup the temporary sort array
-                    unset($$sort_by);
-                }
-
-                if ($limit_count) {
-                    $each_tables = array_slice(
-                        $each_tables, $limit_offset, $limit_count
-                    );
-                }
-
-                $tables[$each_database] = $this->copyTableProperties(
-                    $each_tables, $each_database
-                );
-            }
-        }
 
         $this->_cacheTableData($tables, $table);
 
@@ -871,16 +746,7 @@ class PMA_DatabaseInterface
             $sql .= '
                    FROM data_dictionary.SCHEMAS s';
             if ($force_stats) {
-                $engine_info = PMA_Util::cacheGet('drizzle_engines');
-                $stats_join = "LEFT JOIN (SELECT 0 NUM_ROWS) AS stat ON false";
-                if (isset($engine_info['InnoDB'])
-                    && $engine_info['InnoDB']['module_library'] == 'innobase'
-                ) {
-                    $stats_join
-                        = "LEFT JOIN data_dictionary.INNODB_SYS_TABLESTATS stat"
-                        . " ON (t.ENGINE = 'InnoDB' AND stat.NAME"
-                        . " = (t.TABLE_SCHEMA || '/') || t.TABLE_NAME)";
-                }
+                $stats_join = $this->_getDrizzeStatsJoin();
 
                 $sql .= "
                     LEFT JOIN data_dictionary.TABLES t
@@ -932,13 +798,9 @@ class PMA_DatabaseInterface
         $drops = array_diff(
             array_keys($databases), (array) $GLOBALS['pma']->databases
         );
-        if (count($drops)) {
-            foreach ($drops as $drop) {
-                unset($databases[$drop]);
-            }
-            unset($drop);
+        foreach ($drops as $drop) {
+            unset($databases[$drop]);
         }
-        unset($sql_where_schema, $sql, $drops);
 
         /**
          * apply limit and order manually now
@@ -963,6 +825,28 @@ class PMA_DatabaseInterface
 
         return $databases;
     }
+
+
+    /**
+     * Generates JOIN part for the Drizzle query to get database/table stats.
+     *
+     * @return string
+     */
+    private function _getDrizzeStatsJoin()
+    {
+        $engine_info = PMA_Util::cacheGet('drizzle_engines');
+        $stats_join = "LEFT JOIN (SELECT 0 NUM_ROWS) AS stat ON false";
+        if (isset($engine_info['InnoDB'])
+            && $engine_info['InnoDB']['module_library'] == 'innobase'
+        ) {
+            $stats_join
+                = "LEFT JOIN data_dictionary.INNODB_SYS_TABLESTATS stat"
+                . " ON (t.ENGINE = 'InnoDB' AND stat.NAME"
+                . " = (t.TABLE_SCHEMA || '/') || t.TABLE_NAME)";
+        }
+        return $stats_join;
+    }
+
 
     /**
      * usort comparison callback
@@ -1080,72 +964,7 @@ class PMA_DatabaseInterface
         if (count($sql_wheres)) {
             $sql .= "\n" . ' WHERE ' . implode(' AND ', $sql_wheres);
         }
-
-        $columns = $this->fetchResult($sql, $array_keys, null, $link);
-        unset($sql_wheres, $sql);
-
-        $ordinal_position = 1;
-        foreach ($columns as $column_name => $each_column) {
-
-            // MySQL forward compatibility
-            // so pma could use this array as if every server is of version >5.0
-            // todo : remove and check the rest of the code for usage,
-            // MySQL 5.0 or higher is required for current PMA version
-            $columns[$column_name]['COLUMN_NAME']
-                =& $columns[$column_name]['Field'];
-            $columns[$column_name]['COLUMN_TYPE']
-                =& $columns[$column_name]['Type'];
-            $columns[$column_name]['COLLATION_NAME']
-                =& $columns[$column_name]['Collation'];
-            $columns[$column_name]['IS_NULLABLE']
-                =& $columns[$column_name]['Null'];
-            $columns[$column_name]['COLUMN_KEY']
-                =& $columns[$column_name]['Key'];
-            $columns[$column_name]['COLUMN_DEFAULT']
-                =& $columns[$column_name]['Default'];
-            $columns[$column_name]['EXTRA']
-                =& $columns[$column_name]['Extra'];
-            $columns[$column_name]['PRIVILEGES']
-                =& $columns[$column_name]['Privileges'];
-            $columns[$column_name]['COLUMN_COMMENT']
-                =& $columns[$column_name]['Comment'];
-
-            $columns[$column_name]['TABLE_CATALOG'] = null;
-            $columns[$column_name]['TABLE_SCHEMA'] = $database;
-            $columns[$column_name]['TABLE_NAME'] = $table;
-            $columns[$column_name]['ORDINAL_POSITION'] = $ordinal_position;
-            $columns[$column_name]['DATA_TYPE']
-                = substr(
-                    $columns[$column_name]['COLUMN_TYPE'],
-                    0,
-                    strpos($columns[$column_name]['COLUMN_TYPE'], '(')
-                );
-            /**
-             * @todo guess CHARACTER_MAXIMUM_LENGTH from COLUMN_TYPE
-             */
-            $columns[$column_name]['CHARACTER_MAXIMUM_LENGTH'] = null;
-            /**
-             * @todo guess CHARACTER_OCTET_LENGTH from CHARACTER_MAXIMUM_LENGTH
-             */
-            $columns[$column_name]['CHARACTER_OCTET_LENGTH'] = null;
-            $columns[$column_name]['NUMERIC_PRECISION'] = null;
-            $columns[$column_name]['NUMERIC_SCALE'] = null;
-            $columns[$column_name]['CHARACTER_SET_NAME']
-                = substr(
-                    $columns[$column_name]['COLLATION_NAME'],
-                    0,
-                    strpos($columns[$column_name]['COLLATION_NAME'], '_')
-                );
-
-            $ordinal_position++;
-        }
-
-        if (null !== $column) {
-            reset($columns);
-            $columns = current($columns);
-        }
-
-        return $columns;
+        return $this->fetchResult($sql, $array_keys, null, $link);
     }
 
     /**
@@ -1612,7 +1431,6 @@ class PMA_DatabaseInterface
         if (isset($row[$field])) {
             $value = $row[$field];
         }
-        unset($row);
 
         return $value;
     }
@@ -1729,13 +1547,14 @@ class PMA_DatabaseInterface
      * // $users['admin']['John Doe'] = '123'
      * </code>
      *
-     * @param string         $query   query to execute
-     * @param string|integer $key     field-name or offset
-     *                                used as key for array
-     * @param string|integer $value   value-name or offset
-     *                                used as value for array
-     * @param object         $link    mysql link
-     * @param mixed          $options query options
+     * @param string               $query   query to execute
+     * @param string|integer|array $key     field-name or offset
+     *                                      used as key for array
+     *                                      or array of those
+     * @param string|integer       $value   value-name or offset
+     *                                      used as value for array
+     * @param object               $link    mysql link
+     * @param integer              $options query options
      *
      * @return array resultrows or values indexed by $key
      */
@@ -2015,8 +1834,8 @@ class PMA_DatabaseInterface
     }
 
     /**
-     * returns true (int > 0) if current user is superuser
-     * otherwise 0
+     * Checks if current user is superuser while caching
+     * the result in session.
      *
      * @return bool Whether use is a superuser
      */
@@ -2483,6 +2302,40 @@ class PMA_DatabaseInterface
             return $GLOBALS['userlink'];
         } else {
             return false;
+        }
+    }
+
+    /**
+     * Checks if this database server is running on Amazon RDS.
+     *
+     * @return boolean
+     */
+    public function isAmazonRds()
+    {
+        if (PMA_Util::cacheExists('is_amazon_rds')) {
+            return PMA_Util::cacheGet('is_amazon_rds');
+        }
+        $sql = 'SELECT @@basedir';
+        $result = $this->fetchResult($sql);
+        $rds = ($result[0] == '/rdsdbbin/mysql/');
+        PMA_Util::cacheSet('is_amazon_rds', $rds);
+
+        return $rds;
+    }
+
+    /**
+     * Gets SQL for killing a process.
+     *
+     * @param int $process Process ID
+     *
+     * @return string
+     */
+    public function getKillQuery($process)
+    {
+        if ($this->isAmazonRds()) {
+            return 'CALL mysql.rds_kill(' . $process . ');';
+        } else {
+            return 'KILL ' . $process . ';';
         }
     }
 }

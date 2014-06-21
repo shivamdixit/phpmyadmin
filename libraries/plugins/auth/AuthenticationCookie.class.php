@@ -29,27 +29,10 @@ if (! empty($_REQUEST['target'])) {
 require './libraries/plugins/auth/swekey/swekey.auth.lib.php';
 
 /**
- * Initialization
- * Store the initialization vector because it will be needed for
- * further decryption. I don't think necessary to have one iv
- * per server so I don't put the server number in the cookie name.
+ * phpseclib
  */
-if (function_exists('mcrypt_encrypt')) {
-    if (empty($_COOKIE['pma_mcrypt_iv'])
-        || ! ($iv = base64_decode($_COOKIE['pma_mcrypt_iv'], true))
-    ) {
-        srand((double) microtime() * 1000000);
-        $td = mcrypt_module_open(MCRYPT_BLOWFISH, '', MCRYPT_MODE_CBC, '');
-        if ($td === false) {
-            PMA_fatalError(__('Failed to use Blowfish from mcrypt!'));
-        }
-        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_RAND);
-        $GLOBALS['PMA_Config']->setCookie(
-            'pma_mcrypt_iv',
-            base64_encode($iv)
-        );
-    }
-}
+require PHPSECLIB_INC_DIR . '/Crypt/AES.php';
+require PHPSECLIB_INC_DIR . '/Crypt/Random.php';
 
 /**
  * Handles the cookie authentication method
@@ -58,6 +41,11 @@ if (function_exists('mcrypt_encrypt')) {
  */
 class AuthenticationCookie extends AuthenticationPlugin
 {
+    /**
+     * IV for encryption
+     */
+    private $_cookie_iv = null;
+
     /**
      * Displays authentication form
      *
@@ -296,7 +284,7 @@ class AuthenticationCookie extends AuthenticationPlugin
         // END Swekey Integration
 
         if ($GLOBALS['error_handler']->hasDisplayErrors()) {
-            echo '<div>';
+            echo '<div id="pma_errors">';
             $GLOBALS['error_handler']->dispErrors();
             echo '</div>';
         }
@@ -324,10 +312,6 @@ class AuthenticationCookie extends AuthenticationPlugin
      * it returns true if all seems ok which usually leads to auth_set_user()
      *
      * it directly switches to authFails() if user inactivity timout is reached
-     *
-     * @todo    AllowArbitraryServer on does not imply that the user wants an
-     *          arbitrary server, or? so we should also check if this is filled
-     *          and not only if allowed
      *
      * @return boolean   whether we get authentication settings or not
      */
@@ -463,14 +447,16 @@ class AuthenticationCookie extends AuthenticationPlugin
                 = $_COOKIE['pmaServer-' . $GLOBALS['server']];
         }
 
-        // username
-        if (empty($_COOKIE['pmaUser-' . $GLOBALS['server']])) {
+        // check cookies
+        if (empty($_COOKIE['pmaUser-' . $GLOBALS['server']])
+            || empty($_COOKIE['pma_iv'])
+        ) {
             return false;
         }
 
-        $GLOBALS['PHP_AUTH_USER'] = $this->blowfishDecrypt(
+        $GLOBALS['PHP_AUTH_USER'] = $this->cookieDecrypt(
             $_COOKIE['pmaUser-' . $GLOBALS['server']],
-            $this->_getBlowfishSecret()
+            $this->_getEncryptionSecret()
         );
 
         // user was never logged in since session start
@@ -496,14 +482,14 @@ class AuthenticationCookie extends AuthenticationPlugin
             }
         }
 
-        // password
+        // check password cookie
         if (empty($_COOKIE['pmaPass-' . $GLOBALS['server']])) {
             return false;
         }
 
-        $GLOBALS['PHP_AUTH_PW'] = $this->blowfishDecrypt(
+        $GLOBALS['PHP_AUTH_PW'] = $this->cookieDecrypt(
             $_COOKIE['pmaPass-' . $GLOBALS['server']],
-            $this->_getBlowfishSecret()
+            $this->_getSessionEncryptionSecret()
         );
 
         if ($GLOBALS['PHP_AUTH_PW'] == "\xff(blank)") {
@@ -571,27 +557,14 @@ class AuthenticationCookie extends AuthenticationPlugin
 
         $_SESSION['last_access_time'] = time();
 
+        $this->createIV();
+
         // Name and password cookies need to be refreshed each time
         // Duration = one month for username
-        $GLOBALS['PMA_Config']->setCookie(
-            'pmaUser-' . $GLOBALS['server'],
-            $this->blowfishEncrypt(
-                $cfg['Server']['user'],
-                $this->_getBlowfishSecret()
-            )
-        );
+        $this->storeUsernameCookie($cfg['Server']['user']);
 
         // Duration = as configured
-        $GLOBALS['PMA_Config']->setCookie(
-            'pmaPass-' . $GLOBALS['server'],
-            $this->blowfishEncrypt(
-                ! empty($cfg['Server']['password'])
-                ? $cfg['Server']['password'] : "\xff(blank)",
-                $this->_getBlowfishSecret()
-            ),
-            null,
-            $GLOBALS['cfg']['LoginCookieStore']
-        );
+        $this->storePasswordCookie($cfg['Server']['password']);
 
         // Set server cookies if required (once per session) and, in this case,
         // force reload to ensure the client accepts cookies
@@ -648,7 +621,47 @@ class AuthenticationCookie extends AuthenticationPlugin
         } // end if
 
         return true;
+    }
 
+    /**
+     * Stores username in a cookie.
+     *
+     * @param string $username User name
+     *
+     * @return void
+     */
+    public function storeUsernameCookie($username)
+    {
+        // Name and password cookies need to be refreshed each time
+        // Duration = one month for username
+        $GLOBALS['PMA_Config']->setCookie(
+            'pmaUser-' . $GLOBALS['server'],
+            $this->cookieEncrypt(
+                $username,
+                $this->_getEncryptionSecret()
+            )
+        );
+    }
+
+    /**
+     * Stores password in a cookie.
+     *
+     * @param string $password Password
+     *
+     * @return void
+     */
+    public function storePasswordCookie($password)
+    {
+        // Duration = as configured
+        $GLOBALS['PMA_Config']->setCookie(
+            'pmaPass-' . $GLOBALS['server'],
+            $this->cookieEncrypt(
+                ! empty($password) ? $password : "\xff(blank)",
+                $this->_getSessionEncryptionSecret()
+            ),
+            null,
+            $GLOBALS['cfg']['LoginCookieStore']
+        );
     }
 
     /**
@@ -683,18 +696,27 @@ class AuthenticationCookie extends AuthenticationPlugin
      *
      * @return string
      */
-    private function _getBlowfishSecret()
+    private function _getEncryptionSecret()
     {
         if (empty($GLOBALS['cfg']['blowfish_secret'])) {
-            if (empty($_SESSION['auto_blowfish_secret'])) {
-                // this returns 23 characters
-                $_SESSION['auto_blowfish_secret'] = uniqid('', true);
-            }
-            return $_SESSION['auto_blowfish_secret'];
+            return $this->_getSessionEncryptionSecret();
         } else {
             // apply md5() to work around too long secrets (returns 32 characters)
             return md5($GLOBALS['cfg']['blowfish_secret']);
         }
+    }
+
+    /**
+     * Returns blowfish secret or generates one if needed.
+     *
+     * @return string
+     */
+    private function _getSessionEncryptionSecret()
+    {
+        if (empty($_SESSION['encryption_key'])) {
+            $_SESSION['encryption_key'] = crypt_random_string(256);
+        }
+        return $_SESSION['encryption_key'];
     }
 
     /**
@@ -706,31 +728,12 @@ class AuthenticationCookie extends AuthenticationPlugin
      *
      * @return string the encrypted result
      */
-    public function blowfishEncrypt($data, $secret)
+    public function cookieEncrypt($data, $secret)
     {
-        global $iv;
-        if (! function_exists('mcrypt_encrypt')) {
-            /**
-             * This library uses mcrypt when available, so
-             * we could always call it instead of having an
-             * if/then/else logic, however the include_once
-             * call is costly
-             */
-            include_once "./libraries/phpseclib/Crypt/AES.php";
-            $cipher = new Crypt_AES(CRYPT_AES_MODE_ECB);
-            $cipher->setKey($secret);
-            return base64_encode($cipher->encrypt($data));
-        } else {
-            return base64_encode(
-                mcrypt_encrypt(
-                    MCRYPT_BLOWFISH,
-                    $secret,
-                    $data,
-                    MCRYPT_MODE_CBC,
-                    $iv
-                )
-            );
-        }
+        $cipher = new Crypt_AES(CRYPT_AES_MODE_CBC);
+        $cipher->setIV($this->_cookie_iv);
+        $cipher->setKey($secret);
+        return base64_encode($cipher->encrypt($data));
     }
 
     /**
@@ -742,25 +745,59 @@ class AuthenticationCookie extends AuthenticationPlugin
      *
      * @return string original data
      */
-    public function blowfishDecrypt($encdata, $secret)
+    public function cookieDecrypt($encdata, $secret)
     {
-        global $iv;
-        if (! function_exists('mcrypt_encrypt')) {
-            include_once "./libraries/phpseclib/Crypt/AES.php";
-            $cipher = new Crypt_AES(CRYPT_AES_MODE_ECB);
-            $cipher->setKey($secret);
-            return $cipher->decrypt(base64_decode($encdata));
-        } else {
-            $data = base64_decode($encdata);
-            $decrypted = mcrypt_decrypt(
-                MCRYPT_BLOWFISH,
-                $secret,
-                $data,
-                MCRYPT_MODE_CBC,
-                $iv
-            );
-            return trim($decrypted);
+        if (is_null($this->_cookie_iv)) {
+            $this->_cookie_iv = base64_decode($_COOKIE['pma_iv'], true);
         }
+
+        $cipher = new Crypt_AES(CRYPT_AES_MODE_CBC);
+        $cipher->setIV($this->_cookie_iv);
+        $cipher->setKey($secret);
+        return $cipher->decrypt(base64_decode($encdata));
+    }
+
+    /**
+     * Initialization
+     * Store the initialization vector because it will be needed for
+     * further decryption. I don't think necessary to have one iv
+     * per server so I don't put the server number in the cookie name.
+     *
+     * @return void
+     */
+    public function createIV()
+    {
+        $cipher = new Crypt_AES(CRYPT_AES_MODE_CBC);
+        $this->_cookie_iv = crypt_random_string($cipher->block_size);
+        $GLOBALS['PMA_Config']->setCookie(
+            'pma_iv',
+            base64_encode($this->_cookie_iv)
+        );
+    }
+
+    /**
+     * Sets encryption IV to use
+     *
+     * @param string $vector The IV
+     *
+     * @return void
+     */
+    public function setIV($vector)
+    {
+        $this->_cookie_iv = $vector;
+    }
+
+    /**
+     * Callback when user changes password.
+     *
+     * @param string $password New password to set
+     *
+     * @return array Additional URL parameters.
+     */
+    public function handlePasswordChange($password)
+    {
+        $this->storePasswordCookie($password);
+        return array();
     }
 
     /**

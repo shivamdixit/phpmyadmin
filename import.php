@@ -18,6 +18,15 @@ if (isset($_REQUEST['show_as_php'])) {
     $GLOBALS['show_as_php'] = $_REQUEST['show_as_php'];
 }
 
+// Import functions.
+require_once 'libraries/import.lib.php';
+
+// If there is a request to 'Simulate DML'.
+if (isset($_REQUEST['simulate_dml'])) {
+    PMA_handleSimulateDMLRequest();
+    exit;
+}
+
 /**
  * Sets globals from $_POST
  */
@@ -166,9 +175,6 @@ PMA_Util::checkParameters(array('import_type', 'format'));
 
 // We don't want anything special in format
 $format = PMA_securePath($format);
-
-// Import functions
-require_once 'libraries/import.lib.php';
 
 // Create error and goto url
 if ($import_type == 'table') {
@@ -373,7 +379,10 @@ if ($import_file != 'none' && ! $error) {
          * @todo make use of the config's temp dir with fallback to the
          * system's tmp dir
          */
-        $tmp_subdir = ini_get('upload_tmp_dir'); 
+        $tmp_subdir = ini_get('upload_tmp_dir');
+        if (empty($tmp_subdir)) {
+            $tmp_subdir = sys_get_temp_dir();
+        }
 
         if (is_writable($tmp_subdir)) {
 
@@ -643,8 +652,9 @@ if ($go_sql) {
 } else if ($result) {
     // Save a Bookmark with more than one queries (if Bookmark label given).
     if (! empty($_POST['bkm_label']) && ! empty($import_text)) {
+        $cfgBookmark = PMA_Bookmark_getParams();
         PMA_storeTheQueryAsBookmark(
-            $db, $GLOBALS['cfg']['Bookmark']['user'],
+            $db, $cfgBookmark['user'],
             $import_text, $_POST['bkm_label'],
             isset($_POST['bkm_replace']) ? $_POST['bkm_replace'] : null
         );

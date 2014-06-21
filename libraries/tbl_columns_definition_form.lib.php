@@ -138,6 +138,7 @@ function PMA_getHtmlForTableConfigurations()
 function PMA_getHtmlForFooter()
 {
     $html = '<fieldset class="tblFooters">'
+        . '<input type="button" class="preview_sql" value="' . __('Preview SQL') . '" />'
         . '<input type="submit" name="do_save_data" value="' . __('Save') . '" />'
         . '</fieldset>'
         . '<div id="properties_message"></div>'
@@ -238,7 +239,7 @@ function PMA_getHtmlForTableCreateOrAddField($action, $form_params, $content_cel
 ) {
     $html = '<form method="post" action="' . $action  . '" class="'
         . ($action == 'tbl_create.php' ? 'create_table' : 'append_fields')
-        . '_form ajax">';
+        . '_form ajax lock-page">';
     $html .= PMA_URL_getHiddenInputs($form_params);
 
     if ($action == 'tbl_create.php') {
@@ -366,6 +367,7 @@ function PMA_getMoveColumns($db, $table)
  */
 function PMA_getRowDataForRegeneration($columnNumber, $submit_fulltext)
 {
+    $columnMeta = array();
     $columnMeta['Field'] = isset($_REQUEST['field_name'][$columnNumber])
         ? $_REQUEST['field_name'][$columnNumber]
         : false;
@@ -512,7 +514,7 @@ function PMA_handleRegeneration($columnNumber, $submit_fulltext, $comments_map,
 }
 
 /**
- * Function to update default value info in $columnMeta and get this array 
+ * Function to update default value info in $columnMeta and get this array
  *
  * @param array $columnMeta column meta
  * @param bool  $isDefault  whether the row value is default
@@ -557,11 +559,13 @@ function PMA_getColumnMetaForDefault($columnMeta, $isDefault)
  * @param int   $ci           cell index
  * @param int   $ci_offset    cell index offset
  * @param array $columnMeta   column meta
+ * @param array $cfgRelation  configuration relation
  *
  * @return string
  */
-function PMA_getHtmlForColumnName($columnNumber, $ci, $ci_offset, $columnMeta)
-{
+function PMA_getHtmlForColumnName(
+    $columnNumber, $ci, $ci_offset, $columnMeta, $cfgRelation
+) {
     $title = '';
     if (isset($columnMeta['column_status'])) {
         if ($columnMeta['column_status']['isReferenced']) {
@@ -590,7 +594,18 @@ function PMA_getHtmlForColumnName($columnNumber, $ci, $ci_offset, $columnMeta)
         . (isset($columnMeta['Field'])
             ? htmlspecialchars($columnMeta['Field']) : '')
         . '"' . ' />';
-
+    if ($cfgRelation['central_columnswork'] && !(isset($columnMeta['column_status'])
+        && !$columnMeta['column_status']['isEditable'])
+    ) {
+        $html .=  '<p style="font-size:80%;margin:5px 2px" '
+            . 'id="central_columns_' . $columnNumber . '_'
+            . ($ci - $ci_offset)
+            . '">';
+        $html .= '<a data-maxrows="' . $GLOBALS['cfg']['MaxRows'] . '" '
+            . 'href="#" class="central_columns_dialog"> '
+            . __('Pick from Central Columns') . '</a>'
+            . '</p>';
+    }
     return $html;
 }
 
@@ -1183,13 +1198,15 @@ function PMA_getHtmlForColumnAttributes($columnNumber, $columnMeta, $type_upper,
 
     // column name
     $content_cell[$ci] = PMA_getHtmlForColumnName(
-        $columnNumber, $ci, $ci_offset, isset($columnMeta) ? $columnMeta : null
+        $columnNumber, $ci, $ci_offset, isset($columnMeta) ? $columnMeta : null,
+        $cfgRelation
     );
     $ci++;
 
     // column type
     $content_cell[$ci] = PMA_getHtmlForColumnType(
-        $columnNumber, $ci, $ci_offset, $type_upper, isset($columnMeta) ? $columnMeta : null
+        $columnNumber, $ci, $ci_offset, $type_upper,
+        isset($columnMeta) ? $columnMeta : null
     );
     $ci++;
 
@@ -1296,7 +1313,7 @@ function PMA_getHtmlForColumnAttributes($columnNumber, $columnMeta, $type_upper,
  * @param array  $form_params          form parameters
  * @param int    $columnNumber         column/field number
  * @param string $type                 type in lowercase without the length
- * @param array  $extracted_columnspec details about the column spec 
+ * @param array  $extracted_columnspec details about the column spec
  *
  * @return array
  */
@@ -1308,6 +1325,12 @@ function PMA_getFormParamsForOldColumn(
     if (isset($columnMeta['Field'])) {
         $form_params['field_orig[' . $columnNumber . ']']
             = $columnMeta['Field'];
+        if (isset($columnMeta['column_status'])
+            && !$columnMeta['column_status']['isEditable']
+        ) {
+            $form_params['field_name[' . $columnNumber . ']']
+                = $columnMeta['Field'];
+        }
     } else {
         $form_params['field_orig[' . $columnNumber . ']'] = '';
     }
@@ -1316,6 +1339,12 @@ function PMA_getFormParamsForOldColumn(
         // keep in uppercase because the new type will be in uppercase
         $form_params['field_type_orig[' . $columnNumber . ']']
             = strtoupper($type);
+        if (isset($columnMeta['column_status'])
+            && !$columnMeta['column_status']['isEditable']
+        ) {
+            $form_params['field_type[' . $columnNumber . ']']
+                = strtoupper($type);
+        }
     } else {
         $form_params['field_type_orig[' . $columnNumber . ']'] = '';
     }
@@ -1345,7 +1374,7 @@ function PMA_getFormParamsForOldColumn(
         $form_params['field_attribute_orig[' . $columnNumber . ']'] = '';
     }
 
-    // old column null 
+    // old column null
     if (isset($columnMeta['Null'])) {
         $form_params['field_null_orig[' . $columnNumber . ']']
             = $columnMeta['Null'];
@@ -1353,7 +1382,7 @@ function PMA_getFormParamsForOldColumn(
         $form_params['field_null_orig[' . $columnNumber . ']'] = '';
     }
 
-    // old column extra (for auto_increment) 
+    // old column extra (for auto_increment)
     if (isset($columnMeta['Extra'])) {
         $form_params['field_extra_orig[' . $columnNumber . ']']
             = $columnMeta['Extra'];
@@ -1361,7 +1390,7 @@ function PMA_getFormParamsForOldColumn(
         $form_params['field_extra_orig[' . $columnNumber . ']'] = '';
     }
 
-    // old column comment 
+    // old column comment
     if (isset($columnMeta['Comment'])) {
         $form_params['field_comments_orig[' . $columnNumber . ']']
             = $columnMeta['Comment'];

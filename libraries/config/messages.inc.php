@@ -173,7 +173,7 @@ $strConfigExport_sql_create_table_name = sprintf(__('Add %s'), 'CREATE TABLE');
 $strConfigExport_sql_create_view_name = sprintf(__('Add %s'), 'CREATE VIEW');
 $strConfigExport_sql_create_trigger_name
     = sprintf(__('Add %s'), 'CREATE TRIGGER');
-$strConfigExport_sql_hex_for_blob_name = __('Use hexadecimal for BLOB');
+$strConfigExport_sql_hex_for_binary_name = __('Use hexadecimal for BINARY & BLOB');
 $strConfigExport_sql_if_not_exists_name = sprintf(__('Add %s'), 'IF NOT EXISTS');
 $strConfigExport_sql_ignore_name = __('Use ignore inserts');
 $strConfigExport_sql_include_comments_name = __('Comments');
@@ -591,11 +591,6 @@ $strConfigServers_controlport_desc = __(
     . 'controlhost equals host.'
 );
 $strConfigServers_controlport_name = __('Control port');
-$strConfigServers_designer_coords_desc = __(
-    'Leave blank for no Designer support, suggested: '
-    . '[kbd]pma__designer_coords[/kbd].'
-);
-$strConfigServers_designer_coords_name = __('Designer table');
 $strConfigServers_hide_db_desc
     = __('Hide databases matching regular expression (PCRE).');
 $strConfigServers_hide_db_name = __('Hide databases');
@@ -667,7 +662,7 @@ $strConfigServers_ssl_name = __('Use SSL');
 $strConfigServers_table_coords_desc = __(
     'Leave blank for no PDF schema support, suggested: [kbd]pma__table_coords[/kbd].'
 );
-$strConfigServers_table_coords_name = __('PDF schema: table coordinates');
+$strConfigServers_table_coords_name = __('Designer and PDF schema: table coordinates');
 $strConfigServers_table_info_desc = __(
     'Table to describe the display columns, leave blank for no support; '
     . 'suggested: [kbd]pma__table_info[/kbd].'

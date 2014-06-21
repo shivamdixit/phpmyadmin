@@ -828,13 +828,20 @@ div#tablestatistics table {
     white-space:        nowrap;
 }
 
-#goto_pagetop {
+#goto_pagetop, #lock_page_icon {
     position: fixed;
     padding: .1em .3em;
     top: 0;
-    <?php echo $right; ?>: 0;
     z-index: 900;
     background: white;
+}
+
+#goto_pagetop {
+    <?php echo $right; ?>: 0;
+}
+
+#lock_page_icon {
+    <?php echo $right; ?>: 2em;
 }
 
 #span_table_comment {
@@ -2662,4 +2669,27 @@ table.show_create {
 
 table.show_create td {
     border-right: 1px solid #bbb;
+}
+
+#alias_modal table th {
+    vertical-align: middle;
+    padding-left: 1em;
+}
+
+#alias_modal label.col-2 {
+    min-width: 20%;
+    display: inline-block;
+}
+
+#alias_modal select {
+    width: 25%;
+    margin-right: 2em;
+}
+
+#alias_modal label {
+    font-weight: bold;
+}
+
+.ui-dialog {
+    position: fixed;
 }

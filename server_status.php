@@ -28,7 +28,8 @@ $ServerStatusData = new PMA_ServerStatusData();
  * Kills a selected process
  */
 if (! empty($_REQUEST['kill'])) {
-    if ($GLOBALS['dbi']->tryQuery('KILL ' . $_REQUEST['kill'] . ';')) {
+    $query = $GLOBALS['dbi']->getKillQuery((int)$_REQUEST['kill']);
+    if ($GLOBALS['dbi']->tryQuery($query)) {
         $message = PMA_Message::success(__('Thread %s was successfully killed.'));
     } else {
         $message = PMA_Message::error(

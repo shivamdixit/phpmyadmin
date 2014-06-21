@@ -95,7 +95,6 @@ function PMA_buildColumnCreationStatement(
                     $field_primary
                 );
 
-
         $definition .= PMA_setColumnCreationStatementSuffix($i, $is_create_tbl);
         $definitions[] = $definition;
     } // end for
@@ -326,6 +325,10 @@ function PMA_tryColumnCreationQuery($db, $table, $err_url)
         );
     $sql_query    = 'ALTER TABLE ' .
         PMA_Util::backquote($table) . ' ' . $sql_statement . ';';
+    // If there is a request for SQL previewing.
+    if (isset($_REQUEST['preview_sql'])) {
+        PMA_previewSQL($sql_query);
+    }
     return array($GLOBALS['dbi']->tryQuery($sql_query) , $sql_query);
 }
 ?>

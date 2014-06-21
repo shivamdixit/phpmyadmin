@@ -195,7 +195,7 @@ function PMA_getTableHtmlForMultipleQueries(
             continue;
         }
 
-        // With multiple results, operations are limied
+        // With multiple results, operations are limited
         $disp_mode = 'nnnn000000';
         $is_limited_display = true;
 
@@ -301,6 +301,28 @@ function PMA_getColumnNameInColumnDropSql($sql)
     $drop_column = str_replace('`', '', $drop_column);
 
     return $drop_column;
+}
+
+/**
+ * Verify whether the result set has columns from just one table
+ *
+ * @param array $fields_meta meta fields
+ *
+ * @return boolean whether the result set has columns from just one table
+ */
+function PMA_resultSetHasJustOneTable($fields_meta)
+{
+    $just_one_table = true;
+    $prev_table = $fields_meta[0]->table;
+    foreach ($fields_meta as $one_field_meta) {
+        if (! empty($one_field_meta->table)
+            && $one_field_meta->table != $prev_table
+        ) {
+            $just_one_table = false;
+            break;
+        }
+    }
+    return $just_one_table;
 }
 
 /**
@@ -1511,8 +1533,9 @@ function PMA_executeTheQuery($analyzed_sql_results, $full_sql_query, $is_gotofil
         // If there are no errors and bookmarklabel was given,
         // store the query as a bookmark
         if (! empty($_POST['bkm_label']) && ! empty($sql_query_for_bookmark)) {
+            $cfgBookmark = PMA_Bookmark_getParams();
             PMA_storeTheQueryAsBookmark(
-                $db, $GLOBALS['cfg']['Bookmark']['user'],
+                $db, $cfgBookmark['user'],
                 $sql_query_for_bookmark, $_POST['bkm_label'],
                 isset($_POST['bkm_replace']) ? $_POST['bkm_replace'] : null
             );
@@ -1810,7 +1833,9 @@ function PMA_getHtmlForSqlQueryResults($previous_update_query_html,
 function PMA_getBookmarkCreatedMessage()
 {
     if (isset($_GET['label'])) {
-        $bookmark_created_msg = PMA_message::success(__('Bookmark %s has been created.'));
+        $bookmark_created_msg = PMA_message::success(
+            __('Bookmark %s has been created.')
+        );
         $bookmark_created_msg->addParam($_GET['label']);
     } else {
         $bookmark_created_msg = null;
@@ -2058,7 +2083,9 @@ function PMA_sendQueryResponseForResultsReturned($result, $justBrowsing,
         $db, $table, $fields_meta
     );
 
-    $editable = $has_unique || $updatableView;
+    $just_one_table = PMA_resultSetHasJustOneTable($fields_meta);
+
+    $editable = ($has_unique || $updatableView) && $just_one_table;
 
     // Displays the results in a table
     if (empty($disp_mode)) {
@@ -2136,13 +2163,14 @@ function PMA_sendQueryResponseForResultsReturned($result, $justBrowsing,
         isset($selectedTables) ? $selectedTables : null, $db
     );
 
-    if (isset($GLOBALS['cfg']['Bookmark'])) {
+    $cfgBookmark = PMA_Bookmark_getParams();
+    if ($cfgBookmark) {
         $bookmark_support_html = PMA_getHtmlForBookmark(
             $disp_mode,
-            $GLOBALS['cfg']['Bookmark'],
+            $cfgBookmark,
             $sql_query, $db, $table,
             isset($complete_query) ? $complete_query : $sql_query,
-            $GLOBALS['cfg']['Bookmark']['user']
+            $cfgBookmark['user']
         );
     } else {
         $bookmark_support_html = '';
