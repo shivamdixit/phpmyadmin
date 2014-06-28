@@ -897,6 +897,7 @@ function PMA_isJustBrowsing($analyzed_sql_results, $find_real_end)
         && empty($analyzed_sql_results['analyzed_sql'][0]['group_by_clause'])
         && ! isset($find_real_end)
         && !$analyzed_sql_results['is_subquery']
+        && empty($analyzed_sql_results['analyzed_sql'][0]['having_clause'])
     ) {
         return true;
     } else {
@@ -1672,6 +1673,11 @@ function PMA_getMessageForNoRowsReturned($message_to_show, $analyzed_sql_results
         );
         $_querytime->addParam($GLOBALS['querytime']);
         $message->addMessage($_querytime);
+    }
+
+    // In case of ROLLBACK, notify the user.
+    if (isset($_REQUEST['rollback_query'])) {
+        $message->addMessage(__('[ROLLBACK occurred.]'));
     }
 
     return $message;

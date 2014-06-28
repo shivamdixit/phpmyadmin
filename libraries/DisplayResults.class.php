@@ -630,7 +630,6 @@ class PMA_DisplayResults
     ) {
 
         $table_navigation_html = '';
-        $showtable = $this->__get('showtable'); // To use in isset
 
         // here, using htmlentities() would cause problems if the query
         // contains accented characters
@@ -2930,7 +2929,7 @@ class PMA_DisplayResults
                 );
                 include_once
                     "libraries/plugins/transformations/Text_Plain_Link.class.php";
-                $transformation_plugin = new Text_Plain_Link(null);
+                $transformation_plugin = new Text_Plain_Link();
 
                 $transform_options  = array(
                     0 => $linking_url,

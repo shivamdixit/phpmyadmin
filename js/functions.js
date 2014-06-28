@@ -434,7 +434,6 @@ function confirmQuery(theForm1, sqlQuery1)
  */
 function checkSqlQuery(theForm)
 {
-    var sqlQuery;
     // get the textarea element containing the query
     var sqlQuery;
     if (codemirror_editor) {
@@ -470,9 +469,8 @@ function checkSqlQuery(theForm)
     isEmpty = 1;
 
     if (isEmpty) {
-        sqlQuery.select();
         alert(PMA_messages.strFormEmpty);
-        sqlQuery.focus();
+        codemirror_editor.focus();
         return false;
     }
 
@@ -3107,6 +3105,18 @@ AJAX.registerOnload('functions.js', function () {
             .closest('fieldset')
             .find('.slider')
             .slider('value');
+
+        var tempEmptyVal = function () {
+            $(this).val('');
+        };
+
+        var tempSetFocus = function () {
+            if ($(this).find("option:selected").val() === '') {
+                return true;
+            }
+            $(this).closest("tr").find("input").focus();
+        };
+
         while (rows_to_add--) {
             var $newrow = $('#index_columns')
                 .find('tbody > tr:first')
@@ -3114,16 +3124,9 @@ AJAX.registerOnload('functions.js', function () {
                 .appendTo(
                     $('#index_columns').find('tbody')
                 );
-            $newrow.find(':input').each(function () {
-                $(this).val('');
-            });
+            $newrow.find(':input').each(tempEmptyVal);
             // focus index size input on column picked
-            $newrow.find('select').change(function () {
-                if ($(this).find("option:selected").val() === '') {
-                    return true;
-                }
-                $(this).closest("tr").find("input").focus();
-            });
+            $newrow.find('select').change(tempSetFocus);
         }
     });
 });
@@ -3214,6 +3217,8 @@ function indexEditorDialog(url, title, callback_success, callback_failure)
             .dialog({
                 title: title,
                 width: 450,
+                // increase the chance that the footer will be visible:
+                height: 450,
                 open: PMA_verifyColumnsProperties,
                 modal: true,
                 buttons: button_options,

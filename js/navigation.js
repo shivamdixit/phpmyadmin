@@ -240,20 +240,20 @@ $(function () {
         event.preventDefault();
         $self = $(this);
         var anchor_id = $self.attr("id");
-        if($self.data("favtargetn") !== null)
+        if($self.data("favtargetn") !== null) {
             if($('a[data-favtargets="' + $self.data("favtargetn") + '"]').length > 0)
             {
                 $('a[data-favtargets="' + $self.data("favtargetn") + '"]').trigger('click');
                 return;
             }
+        }
 
         $.ajax({
             url: $self.attr('href'),
             cache: false,
             type: 'POST',
             data: {
-                favorite_tables: (window.localStorage.favorite_tables
-                    !== undefined)
+                favorite_tables: (window.localStorage.favorite_tables !== undefined)
                     ? window.localStorage.favorite_tables
                     : ''
             },
@@ -268,8 +268,7 @@ $(function () {
                     );
                     // Update localStorage.
                     if (window.localStorage !== undefined) {
-                        window.localStorage.favorite_tables
-                            = data.favorite_tables;
+                        window.localStorage.favorite_tables = data.favorite_tables;
                     }
                 } else {
                     PMA_ajaxShowMessage(data.message);
@@ -728,10 +727,6 @@ function PMA_navigationTreePagination($this) {
  */
 var ResizeHandler = function () {
     /**
-     * Whether the user has initiated a resize operation
-     */
-    this.active = false;
-    /**
      * @var int panel_width Used by the collapser to know where to go
      *                      back to when uncollapsing the panel
      */
@@ -753,7 +748,7 @@ var ResizeHandler = function () {
         var $collapser = $('#pma_navigation_collapser');
         $('#pma_navigation').width(pos);
         $('body').css('margin-' + this.left, pos + 'px');
-        $("#floating_menubar")
+        $("#floating_menubar, #pma_console")
             .css('margin-' + this.left, (pos + resizer_width) + 'px');
         $resizer.css(this.left, pos + 'px');
         if (pos === 0) {
@@ -827,7 +822,11 @@ var ResizeHandler = function () {
      */
     this.mousedown = function (event) {
         event.preventDefault();
-        event.data.resize_handler.active = true;
+        $(document)
+            .bind('mousemove', {'resize_handler': event.data.resize_handler},
+                $.throttle(event.data.resize_handler.mousemove, 4))
+            .bind('mouseup', {'resize_handler': event.data.resize_handler},
+                event.data.resize_handler.mouseup);
         $('body').css('cursor', 'col-resize');
     };
     /**
@@ -838,12 +837,11 @@ var ResizeHandler = function () {
      * @return void
      */
     this.mouseup = function (event) {
-        if (event.data.resize_handler.active) {
-            event.data.resize_handler.active = false;
-            $('body').css('cursor', '');
-            $.cookie('pma_navi_width', event.data.resize_handler.getPos(event));
-            $('#topmenu').menuResizer('resize');
-        }
+        $('body').css('cursor', '');
+        $.cookie('pma_navi_width', event.data.resize_handler.getPos(event));
+        $('#topmenu').menuResizer('resize');
+        $(document)
+            .unbind('mousemove');
     };
     /**
      * Event handler for updating the panel during a resize operation
@@ -853,11 +851,9 @@ var ResizeHandler = function () {
      * @return void
      */
     this.mousemove = function (event) {
-        if (event.data && event.data.resize_handler && event.data.resize_handler.active) {
-            event.preventDefault();
-            var pos = event.data.resize_handler.getPos(event);
-            event.data.resize_handler.setWidth(pos);
-        }
+        event.preventDefault();
+        var pos = event.data.resize_handler.getPos(event);
+        event.data.resize_handler.setWidth(pos);
         if($('#sticky_columns').length !== 0) {
             handleStickyColumns();
         }
@@ -871,7 +867,6 @@ var ResizeHandler = function () {
      */
     this.collapse = function (event) {
         event.preventDefault();
-        event.data.active = false;
         var panel_width = event.data.resize_handler.panel_width;
         var width = $('#pma_navigation').width();
         if (width === 0 && panel_width === 0) {
@@ -899,6 +894,9 @@ var ResizeHandler = function () {
                 'overflow-y': 'auto'
             });
         }
+        // Set content bottom space beacuse of console
+        $('body').css('margin-bottom',
+                      $(window).height() + $(document).scrollTop() - $('#pma_console').offset().top + 'px');
     };
     /* Initialisation section begins here */
     if ($.cookie('pma_navi_width')) {
@@ -910,9 +908,6 @@ var ResizeHandler = function () {
     // Register the events for the resizer and the collapser
     $('#pma_navigation_resizer')
         .live('mousedown', {'resize_handler': this}, this.mousedown);
-    $(document)
-        .bind('mouseup', {'resize_handler': this}, this.mouseup)
-        .bind('mousemove', {'resize_handler': this}, $.throttle(this.mousemove, 4));
     var $collapser = $('#pma_navigation_collapser');
     $collapser.live('click', {'resize_handler': this}, this.collapse);
     // Add the correct arrow symbol to the collapser
@@ -1252,8 +1247,9 @@ function PMA_showFullName($containerELem) {
         /** mouseenter */
         var $this = $(this);
         var thisOffset = $this.offset();
-        if($this.text() === '')
+        if($this.text() === '') {
             return;
+        }
         var $parent = $this.parent();
         if(  ($parent.offset().left + $parent.outerWidth())
            < (thisOffset.left + $this.outerWidth()))
